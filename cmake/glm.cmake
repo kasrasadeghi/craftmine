@@ -4,5 +4,3 @@ INCLUDE_DIRECTORIES(${glm_INCLUDE_DIR})
 message(STATUS "Using System glm")
 
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL -DGLM_FORCE_SIZE_FUNC=1 -DGLM_FORCE_RADIANS=1)
-
-# vim: tw=78
