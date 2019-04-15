@@ -12,18 +12,26 @@ layout (location = 0) in vec4 vertex_position;
 
 // input from instances
 layout (location = 1) in vec3 instance_offset;
-// layout (location = 2) in int direction;
+layout (location = 2) in uint direction;
 
 void main()
 {
-  vec4 pos = vertex_position;
-  // if (direction == 0) {
-  //   pos += vec4(0, 0, -3, 0);
-  // }
-  // if (direction == 1) {
-  //   pos += vec4(0, 0, 3, 0);
-  // }
-	gl_Position = vec4(instance_offset, 0) + pos;
+  vec3 pos = vertex_position.xyz;
+  switch(direction) {
+    // case 0: // +X
+    case 1: // +Y
+      pos = pos.yxz; break;
+    case 2: // +Z
+      pos = pos.zyx; break;
+    case 3: // -X
+      pos = -pos; break;
+    case 4: // -Y
+      pos = -pos.yxz; break;
+    case 5: // -Z
+      pos = -pos.zyx; break;
+  }
+
+	gl_Position = vec4(instance_offset, 0) + vec4(pos, 1);
 }
 )zzz";
 
@@ -261,18 +269,20 @@ int main() {
   // addCube(1, {0, 0, 0});
 
   struct Instance_ {
-    Instance_(glm::vec3 p, int d): x(p.x), y(p.y), z(p.z)/* , direction(d) */ {}
+    Instance_(glm::vec3 p, GLuint d): x(p.x), y(p.y), z(p.z), direction(d) {}
     float x;
     float y;
     float z;
-    // GLint direction; // 0 .. 5 = x, y, z, -x, -y, -z
+    GLuint direction; // 0 .. 5 = x, y, z, -x, -y, -z
   } __attribute__((packed));
 
   std::vector<Instance_> instances;
-  instances.emplace_back(glm::vec3{0, -1, 0}, 0);
-  instances.emplace_back(glm::vec3{0, +1, 0}, 1);
+  instances.emplace_back(glm::vec3{0, 0, 0}, 0);
   instances.emplace_back(glm::vec3{0, 0, 0}, 1);
-
+  instances.emplace_back(glm::vec3{0, 0, 0}, 2);
+  instances.emplace_back(glm::vec3{0, 0, 0}, 3);
+  instances.emplace_back(glm::vec3{0, 0, 0}, 4);
+  instances.emplace_back(glm::vec3{0, 0, 0}, 5);
 
   GLuint worldVAO;
   struct VBO_ {
@@ -298,12 +308,12 @@ int main() {
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(Instance_) * instances.size(), instances.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(    1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3)/*  + sizeof(int) */, (void*)0);
+    glVertexAttribPointer(    1, 3, GL_FLOAT, GL_FALSE, sizeof(Instance_), (void*)0);
     glVertexAttribDivisor(    1, 1);
 
-    // glEnableVertexAttribArray(2);
-    // glVertexAttribPointer(    2, 1, GL_INT,   GL_FALSE, sizeof(glm::vec3) + sizeof(int), (void*)(sizeof(glm::vec3)));
-    // glVertexAttribDivisor(    2, 1);
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(   2, 1, GL_UNSIGNED_INT, sizeof(Instance_), (void*)(sizeof(glm::vec3)));
+    glVertexAttribDivisor(    2, 1);
 
   GLuint program_id = 0;
 	CreateProgram(program_id);
