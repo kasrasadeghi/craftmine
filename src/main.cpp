@@ -3,7 +3,7 @@
 
 int main() {
   std::cout << "hello world" << std::endl;
-  RenderWindow window {"Hello World"};
+  RenderWindow window {"Hello World", 800, 600};
 
   window.setKeyCallback([&](int key, int scancode, int action, int mods){
     if (key == GLFW_KEY_ESCAPE) {

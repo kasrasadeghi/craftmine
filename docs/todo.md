@@ -1,5 +1,5 @@
 investigate making glad a static lib
-investigate renderwindow non fullscreen
 > DONE
+investigate renderwindow non fullscreen
 build with opengl
 build

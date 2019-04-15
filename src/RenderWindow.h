@@ -37,6 +37,32 @@ public:
   int _width;
   int _height;
 
+  /// windowed mode
+  RenderWindow(const char* name, int width, int height) : _width(width), _height(height) {
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    _window = glfwCreateWindow(_width, _height, name, NULL, NULL);
+    if (_window == NULL) {
+      std::cout << "Failed to create GLFW window" << std::endl;
+      glfwTerminate();
+      exit(-1);
+    }
+    glfwMakeContextCurrent(_window);
+
+    // load opengl
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+      std::cout << "Failed to initialize GLAD" << std::endl;
+      glfwTerminate();
+      exit(-1);
+    }
+    glfwSetFramebufferSizeCallback(_window, frameBufferSizeCallback);
+    glViewport(0, 0, _width, _height);
+  }
+
+  /// fullscreen mode
   RenderWindow(const char* name) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
