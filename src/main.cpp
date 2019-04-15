@@ -4,6 +4,13 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 
+constexpr int CHUNK_SIZE = 16;
+constexpr int CHUNK_HEIGHT = 128;
+
+struct World {
+  u_char chunk[CHUNK_SIZE][CHUNK_SIZE][CHUNK_HEIGHT] = {}; // zero init in cpp
+};
+
 const char* vertex_shader =
 R"zzz(#version 410 core
 
@@ -14,22 +21,31 @@ layout (location = 0) in vec4 vertex_position;
 layout (location = 1) in vec3 instance_offset;
 layout (location = 2) in uint direction;
 
+out uint vs_direction;
+
 void main()
 {
   vec3 pos = vertex_position.xyz;
   switch(direction) {
-    // case 0: // +X
+    case 0: // +X
+      pos.z *= -1; break;
     case 1: // +Y
       pos = pos.yxz; break;
     case 2: // +Z
       pos = pos.zyx; break;
     case 3: // -X
-      pos = -pos; break;
+      pos = -pos; 
+      break;
     case 4: // -Y
-      pos = -pos.yxz; break;
+      pos = -pos.yxz; 
+      pos.x *= -1;
+      break;
     case 5: // -Z
-      pos = -pos.zyx; break;
+      pos = -pos.zyx; 
+      pos.x *= -1;
+      break;
   }
+  vs_direction = direction;
 
 	gl_Position = vec4(instance_offset, 0) + vec4(pos, 1);
 }
@@ -46,6 +62,9 @@ layout (triangle_strip, max_vertices = 4) out;
 uniform mat4 projection;
 uniform mat4 view;
 
+in uint vs_direction[];
+flat out uint sq_direction;
+
 // output to fragment shader
 flat out vec4 normal;
 out vec4 world_position;
@@ -55,7 +74,8 @@ out vec2 tex_coord;
 
 void main()
 {
-	int n = 0;
+  sq_direction = vs_direction[0];
+
 	vec3 AB = gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz;
 	vec3 AC = gl_in[2].gl_Position.xyz - gl_in[0].gl_Position.xyz;
 	normal = normalize(vec4(cross(AB, AC), 0));
@@ -102,6 +122,8 @@ R"zzz(#version 410 core
 uniform bool wireframe; 
 uniform vec4 light_position;
 
+flat in uint sq_direction;
+
 flat in vec4 normal;
 in vec4 world_position;
 in vec4 bary_coord;
@@ -119,7 +141,17 @@ void main()
 	// float dot_nl = dot(normalize(light_direction), normalize(normal));
 	// dot_nl = clamp(dot_nl, 0.0, 1.0);
 	// fragment_color = clamp(dot_nl * color, 0.0, 1.0);
-  fragment_color = vec4(tex_coord, 0, 1);
+  
+  // fragment_color = vec4(tex_coord, 0, 1);
+
+  uint dir = sq_direction;
+  if (dir >= 3) {
+    dir -= 3;
+  } 
+
+  vec4 color = vec4(0);
+  color[dir] = 1;
+  fragment_color = color;
 
 	bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
 	if (wireframe && is_frame) {
@@ -237,36 +269,6 @@ int main() {
   std::vector<glm::uvec3> faces;
   faces.emplace_back(0, 1, 2);
 
-  // // naive triangle add
-  // auto addCube = [&](float size, glm::vec3 pos) {
-  //   auto s = size;
-  //   auto x = pos.x;
-  //   auto y = pos.y;
-  //   auto z = pos.z;
-  //   auto face_base = vertices.size();
-  //   vertices.emplace_back( s + x,  s + y,  s + z, 1.0f);
-  //   vertices.emplace_back(-s + x,  s + y,  s + z, 1.0f);
-  //   vertices.emplace_back(-s + x, -s + y,  s + z, 1.0f);
-  //   vertices.emplace_back( s + x, -s + y,  s + z, 1.0f);
-  //   vertices.emplace_back( s + x, -s + y, -s + z, 1.0f);
-  //   vertices.emplace_back( s + x,  s + y, -s + z, 1.0f);
-  //   vertices.emplace_back(-s + x,  s + y, -s + z, 1.0f);
-  //   vertices.emplace_back(-s + x, -s + y, -s + z, 1.0f);
-
-  //   auto make_face = [&faces, face_base](uint a, uint b, uint c, uint d) {
-  //     a += face_base; b += face_base; c += face_base; d += face_base;
-  //   	faces.emplace_back(b, a, d);
-  //   	faces.emplace_back(c, b, d);
-  //   };
-  //   make_face(2, 1, 6, 7); // F'
-  //   make_face(0, 3, 4, 5); // F   +x
-  //   make_face(4, 3, 2, 7); // U'
-  //   make_face(6, 1, 0, 5); // U   +y
-  //   make_face(4, 5, 6, 7); // R'
-  //   make_face(0, 1, 2, 3); // R   +z
-  // };
-
-  // addCube(1, {0, 0, 0});
 
   struct Instance_ {
     Instance_(glm::vec3 p, GLuint d): x(p.x), y(p.y), z(p.z), direction(d) {}
@@ -277,12 +279,33 @@ int main() {
   } __attribute__((packed));
 
   std::vector<Instance_> instances;
-  instances.emplace_back(glm::vec3{0, 0, 0}, 0);
-  instances.emplace_back(glm::vec3{0, 0, 0}, 1);
-  instances.emplace_back(glm::vec3{0, 0, 0}, 2);
-  instances.emplace_back(glm::vec3{0, 0, 0}, 3);
-  instances.emplace_back(glm::vec3{0, 0, 0}, 4);
-  instances.emplace_back(glm::vec3{0, 0, 0}, 5);
+
+  auto addCube = [&](glm::vec3 pos) {
+    instances.emplace_back(pos, 0);
+    instances.emplace_back(pos, 1);
+    instances.emplace_back(pos, 2);
+    instances.emplace_back(pos, 3);
+    instances.emplace_back(pos, 4);
+    instances.emplace_back(pos, 5);
+  };
+
+  // create world with flat plane
+  World world;
+  for (int i = 0; i < CHUNK_SIZE; ++i) {
+    for (int k = 0; k < CHUNK_HEIGHT; ++k) {
+      world.chunk[i][50][k] = 1;
+    }
+  }
+
+  for (int i = 0; i < CHUNK_SIZE; ++i) {
+    for (int j = 0; j < CHUNK_SIZE; ++j) {
+      for (int k = 0; k < CHUNK_HEIGHT; ++k) {
+        if (world.chunk[i][j][k] != 0) {
+          addCube({i, j, k});
+        }
+      }
+    }
+  }
 
   GLuint worldVAO;
   struct VBO_ {
@@ -341,6 +364,8 @@ int main() {
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 
     glBindVertexArray(worldVAO);
 
