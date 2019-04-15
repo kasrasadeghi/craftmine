@@ -8,15 +8,21 @@ const char* vertex_shader =
 R"zzz(#version 410 core
 
 // input from render
-in vec4 vertex_position;
+layout (location = 0) in vec4 vertex_position;
 
 // input from instances
-in vec3 instance_offset;
-in int direction;
+layout (location = 1) in vec3 instance_offset;
+// layout (location = 2) in int direction;
 
 void main()
 {
   vec4 pos = vertex_position;
+  // if (direction == 0) {
+  //   pos += vec4(0, 0, -3, 0);
+  // }
+  // if (direction == 1) {
+  //   pos += vec4(0, 0, 3, 0);
+  // }
 	gl_Position = vec4(instance_offset, 0) + pos;
 }
 )zzz";
@@ -255,15 +261,18 @@ int main() {
   // addCube(1, {0, 0, 0});
 
   struct Instance_ {
-    Instance_(glm::vec3 p, int d): x(p.x), y(p.y), z(p.z), direction(d) {}
+    Instance_(glm::vec3 p, int d): x(p.x), y(p.y), z(p.z)/* , direction(d) */ {}
     float x;
     float y;
     float z;
-    GLint direction; // 0 .. 5 = x, y, z, -x, -y, -z
-  }__attribute__((packed));
+    // GLint direction; // 0 .. 5 = x, y, z, -x, -y, -z
+  } __attribute__((packed));
+
   std::vector<Instance_> instances;
-  instances.emplace_back(glm::vec3{0, 0, 0},  1);
-  instances.emplace_back(glm::vec3{0, -1, 0}, 1);
+  instances.emplace_back(glm::vec3{0, -1, 0}, 0);
+  instances.emplace_back(glm::vec3{0, +1, 0}, 1);
+  instances.emplace_back(glm::vec3{0, 0, 0}, 1);
+
 
   GLuint worldVAO;
   struct VBO_ {
@@ -286,14 +295,15 @@ int main() {
     glVertexAttribPointer(    0, 4, GL_FLOAT, GL_FALSE, 0, 0);
   
   glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
+
     glBufferData(GL_ARRAY_BUFFER, sizeof(Instance_) * instances.size(), instances.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(    1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3) + sizeof(int), (void*)0);
+    glVertexAttribPointer(    1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3)/*  + sizeof(int) */, (void*)0);
     glVertexAttribDivisor(    1, 1);
 
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(    2, 1, GL_INT,   GL_FALSE, sizeof(glm::vec3) + sizeof(int), (void*)(sizeof(glm::vec3)));
-    glVertexAttribDivisor(    2, 1);
+    // glEnableVertexAttribArray(2);
+    // glVertexAttribPointer(    2, 1, GL_INT,   GL_FALSE, sizeof(glm::vec3) + sizeof(int), (void*)(sizeof(glm::vec3)));
+    // glVertexAttribDivisor(    2, 1);
 
   GLuint program_id = 0;
 	CreateProgram(program_id);
@@ -349,7 +359,7 @@ int main() {
 		glUniform4fv(      uniform.light_pos, 1, &light_position[0]);
     glUniform1i(       uniform.wireframe, wireframe_mode);
 
-    glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, 2);
+    glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
 
     window.swapBuffers();
     glfwPollEvents();
