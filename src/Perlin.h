@@ -1,8 +1,11 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include "GlmHashes.h"
+#include <stdio.h>
 
+#include <iostream>
 #include <unordered_map>
 std::unordered_map<glm::ivec2, glm::vec2> gradients;
 
@@ -54,8 +57,8 @@ float perlin(float x, float y) {
   float p11 = glm::dot(g11, d11);
 
   // heights and interpolation
-  float h0_ = glm::mix(p00, p01, d00.x);
-  float h1_ = glm::mix(p10, p11, d00.x);
+  float h0_ = glm::mix(p00, p10, d00.x);
+  float h1_ = glm::mix(p01, p11, d00.x);
   float h__ = glm::mix(h0_, h1_, d00.y);
 
   return h__;
