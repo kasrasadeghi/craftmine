@@ -139,9 +139,11 @@ void main()
     dir -= 3;
   } 
 
+  float w = (52 - world_position.y)/15;
+
   vec4 color = vec4(0);
   color[dir] = 1;
-  fragment_color = color;
+  fragment_color = mix(vec4(0, 0, 0, 0), color, 1 - w);
 
 	bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
 	if (wireframe && is_frame) {
