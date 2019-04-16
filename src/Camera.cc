@@ -5,10 +5,10 @@
 #include <GLFW/glfw3.h>
 
 namespace {
-	float pan_speed = 0.1f;
+	float pan_speed = 0.5f;
 	float roll_speed = 0.1f;
 	float rotation_speed = 0.02f;
-	float zoom_speed = 0.1f;
+	float zoom_speed = 0.5f;
 };
 
 glm::mat4 Camera::get_view_matrix() const {
