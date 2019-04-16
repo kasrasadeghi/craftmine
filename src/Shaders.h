@@ -129,21 +129,35 @@ float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
+float blerp (float i00, float i10, float i01, float i11, float u, float v) {
+    float lerp_x0 = mix(i00,i10, u);
+    float lerp_x1 = mix(i01,i11, u);
+
+    return mix(lerp_x0, lerp_x1, v);
+}
+
+float get_noise_level(float u, float v, float grit_level) {
+  // 3 grits 8x8, 16x16, 32x32
+  float grit00 = rand(floor(vec2(u,v) * grit_level) + vec2(0,0));
+  float grit10 = rand(floor(vec2(u,v) * grit_level) + vec2(1,0));
+  float grit01 = rand(floor(vec2(u,v) * grit_level) + vec2(0,1));
+  float grit11 = rand(floor(vec2(u,v) * grit_level) + vec2(1,1));
+
+  float new_u = (u - (floor(u * grit_level) / grit_level)) * grit_level;
+  float new_v = (v - (floor(v * grit_level) / grit_level)) * grit_level;
+
+  float grit = blerp(grit00, grit10, grit01, grit11, new_u, new_v);
+  return grit;
+}
+
 float ProceduralNoise(float u, float v) {
   // 3 grits 8x8, 16x16, 32x32
-  float high_grit00 = rand(floor(vec2(u,v) * 8) + vec2(0,0));
-  float high_grit10 = rand(floor(vec2(u,v) * 8) + vec2(1,0));
-  float high_grit01 = rand(floor(vec2(u,v) * 8) + vec2(0,1));
-  float high_grit11 = rand(floor(vec2(u,v) * 8) + vec2(1,1));
-
-  float high_grit = mix(mix(high_grit00, high_grit10,u),mix(high_grit01, high_grit11, u), v);
-
-  float mid_grit = rand(floor(vec2(u,v) * 16));
-  float low_grit = rand(floor(vec2(u,v) * 32));
-
+  float high_grit = get_noise_level(u, v, 8);
+  float mid_grit = get_noise_level(u, v, 16);
+  float low_grit = get_noise_level(u, v, 32);
 
   
-  return (high_grit + 1/2 * mid_grit + 1/4 * low_grit) / 1.75;
+  return (high_grit + 2/3.f * mid_grit + 1/3.f * low_grit) / 2;
 }
 
 
