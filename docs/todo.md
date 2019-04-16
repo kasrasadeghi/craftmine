@@ -1,4 +1,5 @@
 investigate making glad a static lib
+perlin noise
 > DONE
 cull non-air-neighbor faces
 render instances boxes

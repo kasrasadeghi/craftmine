@@ -1,5 +1,6 @@
 #include "RenderWindow.h"
 #include "Camera.h"
+#include "Perlin.h"
 
 #include "Shaders.h"
 #include "World.h"
@@ -8,7 +9,6 @@
 #include <vector>
 
 #include <GLFW/glfw3.h>
-#include <glm/gtc/random.hpp>
 #include <glm/gtx/string_cast.hpp>
 
 int main() {
@@ -77,51 +77,13 @@ int main() {
   World world{256, 256};
   srand(time(NULL));
 
-  auto rand2 = []() -> glm::vec2 {
-    float theta = rand()/(float)RAND_MAX * glm::two_pi<float>();
-    return glm::vec2 {glm::cos(theta), glm::sin(theta)};
-  };
-
-  // gradients
-  glm::vec2 g00 = rand2();
-  glm::vec2 g01 = rand2();
-  glm::vec2 g10 = rand2();
-  glm::vec2 g11 = rand2();
-
-  auto p4 = [](auto a, auto b, auto c, auto d){
-    std::cout 
-      << glm::to_string(a) << " "
-      << glm::to_string(b) << " "
-      << glm::to_string(c) << " "
-      << glm::to_string(d) << std::endl;
-  };
-
   // compute total step count
   float s = glm::max<float>(world._width, world._height);
   float ds = 1/s;
   
-  for (int i = 0; i < s; ++i) {
-    for (int k = 0; k < s; ++k) {
-      // distances
-      glm::vec2 d00 = ds * glm::vec2(i, k);
-      glm::vec2 d01 = ds * glm::vec2(i - (s-1), k);
-      glm::vec2 d10 = ds * glm::vec2(i, k - (s-1));
-      glm::vec2 d11 = ds * glm::vec2(i - (s-1), k - (s-1));
-
-      // products
-      float p00 = glm::dot(g00, d00);
-      float p01 = glm::dot(g01, d01);
-      float p10 = glm::dot(g10, d10);
-      float p11 = glm::dot(g11, d11);
-
-      // heights and interpolation
-      float h0_ = glm::mix(p00, p01, d00.x);
-      float h1_ = glm::mix(p10, p11, d00.x);
-      float h__ = glm::mix(h0_, h1_, d00.y);
-
-      float v = h__;
-      
-      world(i, 50 + v * 10, k) = 1;
+  for (int i = 0; i < world._width; ++i) {
+    for (int k = 0; k < world._height; ++k) {
+      world(i, 50 + perlin(i / 50.f, k / 50.f) * 10, k) = 1;
     }
   }
 
