@@ -150,6 +150,10 @@ float get_noise_level(float u, float v, float grit_level) {
   return grit;
 }
 
+float cross_lines(float u, float v, float rand) {
+  return sin(u - v + rand);
+}
+
 float ProceduralNoise(float u, float v) {
   // 3 grits 8x8, 16x16, 32x32
   float high_grit = get_noise_level(u, v, 8);
@@ -185,7 +189,13 @@ void main()
 
   fragment_color = mix(vec4(0, 0, 0, 0), color, 1 - w);
 
-  float noise = ProceduralNoise(tex_coord.x,tex_coord.y);
+  float alpha = 10;
+  float beta = 1;
+
+  float vert_line_weight = 17;
+  float hori_line_weight = 17;
+
+  float noise = cross_lines(hori_line_weight * tex_coord.x, vert_line_weight * tex_coord.y , alpha * ProceduralNoise(beta * tex_coord.x, beta * tex_coord.y) );
   fragment_color = mix(fragment_color, vec4(noise, noise, noise, 1) , .5);
 
 	bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
