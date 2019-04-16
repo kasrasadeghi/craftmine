@@ -125,6 +125,28 @@ flat in vec3 flag_color;
 
 out vec4 fragment_color;
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float ProceduralNoise(float u, float v) {
+  // 3 grits 8x8, 16x16, 32x32
+  float high_grit00 = rand(floor(vec2(u,v) * 8) + vec2(0,0));
+  float high_grit10 = rand(floor(vec2(u,v) * 8) + vec2(1,0));
+  float high_grit01 = rand(floor(vec2(u,v) * 8) + vec2(0,1));
+  float high_grit11 = rand(floor(vec2(u,v) * 8) + vec2(1,1));
+
+  float high_grit = mix(mix(high_grit00, high_grit10,u),mix(high_grit01, high_grit11, u), v);
+
+  float mid_grit = rand(floor(vec2(u,v) * 16));
+  float low_grit = rand(floor(vec2(u,v) * 32));
+
+
+  
+  return (high_grit + 1/2 * mid_grit + 1/4 * low_grit) / 1.75;
+}
+
+
 void main()
 {
 	// vec4 color = abs(normal);
@@ -145,7 +167,12 @@ void main()
 
   vec4 color = vec4(0);
   color[dir] = 1;
+
+
   fragment_color = mix(vec4(0, 0, 0, 0), color, 1 - w);
+
+  float noise = ProceduralNoise(tex_coord.x,tex_coord.y);
+  fragment_color = mix(fragment_color, vec4(noise, noise, noise, 1) , .5);
 
 	bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
 	if (wireframe && is_frame) {
