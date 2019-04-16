@@ -74,7 +74,7 @@ int main() {
   faces.emplace_back(0, 1, 2);
 
   // create world with flat plane
-  World world;
+  World world{256, 256};
   srand(time(NULL));
 
   auto rand2 = []() -> glm::vec2 {
@@ -97,8 +97,7 @@ int main() {
   };
 
   // compute total step count
-  // float s = glm::max<float>(world.width, world.height);
-  float s = 16.f;
+  float s = glm::max<float>(world._width, world._height);
   float ds = 1/s;
   
   for (int i = 0; i < s; ++i) {

@@ -19,7 +19,7 @@ struct Chunk {
 
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
 
-  void build(std::vector<Instance>& instances) {
+  void build(glm::ivec2 offset, std::vector<Instance>& instances) {
     auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs) {
       if (airs[0]) instances.emplace_back(pos, 0);
       if (airs[1]) instances.emplace_back(pos, 1);
@@ -53,18 +53,33 @@ struct Chunk {
           isAir(i, j, k-1),
         };
 
-        addCube({i, j, k}, airs);
+        addCube({i + offset.x, j, k + offset.y}, airs);
       }
     }}}
   }
 };
 
 struct World {
-  std::vector<std::vector<Chunk>> chunks;
+  int _width;
+  int _height;
+  std::vector<std::vector<Chunk>> _chunks;
 
   World() {
-    chunks.emplace_back();
-    chunks.back().emplace_back();
+    _chunks.emplace_back();
+    _chunks.back().emplace_back();
+  }
+
+  World(int width, int height) {
+    int cw = width / CHUNK_SIZE;
+    int ch = height / CHUNK_SIZE;
+    for (int i = 0; i < cw; ++i) {
+      _chunks.emplace_back();    
+      for (int k = 0; k < ch; ++k) {
+        _chunks.back().emplace_back();
+      }
+    }
+    _width = cw * CHUNK_SIZE;
+    _height = ch * CHUNK_SIZE;
   }
 
   u_char& operator()(int i, int j, int k){
@@ -72,13 +87,14 @@ struct World {
     int ck = k / CHUNK_SIZE;
     int di = i % CHUNK_SIZE;
     int dk = k % CHUNK_SIZE;
-    return chunks.at(ci).at(ck).data.at(di).at(j).at(k);
+    return _chunks.at(ci).at(ck).data.at(di).at(j).at(dk);
   }
 
   void build(std::vector<Instance>& instances) {
-    for (uint i = 0; i < chunks.size(); ++i) {
-      for (uint j = 0; j < chunks[0].size(); ++j) {
-        chunks[i][j].build(instances);
+    // _chunks[0][0].build(instances);
+    for (uint i = 0; i < _chunks.size(); ++i) {
+      for (uint k = 0; k < _chunks[0].size(); ++k) {
+        _chunks[i][k].build({i*CHUNK_SIZE, k*CHUNK_SIZE}, instances);
       }
     }
   }
