@@ -6,7 +6,10 @@
 
 #include <iostream>
 #include <vector>
+
 #include <GLFW/glfw3.h>
+#include <glm/gtc/random.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 int main() {
   // RenderWindow window {"Hello World", 800, 600};
@@ -72,15 +75,61 @@ int main() {
 
   // create world with flat plane
   World world;
-  Chunk& chunk = world.chunks[0][0];
-  for (int i = 0; i < CHUNK_SIZE; ++i) {
-    for (int k = 0; k < CHUNK_SIZE; ++k) {
-      world(i, 50, k) = 1;
+  srand(time(NULL));
+
+  // FIXME: 2 bugs
+  //   1. gradients cannot be negative
+  //   2. distance vectors should be negative if they point backwards
+
+  // gradients
+  glm::vec2 g00 = glm::normalize(glm::vec2(rand()/10.f/RAND_MAX, rand()/10.f/RAND_MAX));
+  glm::vec2 g01 = glm::normalize(glm::vec2(rand()/10.f/RAND_MAX, rand()/10.f/RAND_MAX));
+  glm::vec2 g10 = glm::normalize(glm::vec2(rand()/10.f/RAND_MAX, rand()/10.f/RAND_MAX));
+  glm::vec2 g11 = glm::normalize(glm::vec2(rand()/10.f/RAND_MAX, rand()/10.f/RAND_MAX));
+
+  auto p4 = [](auto a, auto b, auto c, auto d){
+    std::cout 
+      << glm::to_string(a) << " "
+      << glm::to_string(b) << " "
+      << glm::to_string(c) << " "
+      << glm::to_string(d) << std::endl;
+  };
+  p4(g00, g01, g10, g11);
+  
+  // exit(0);
+
+  for (int i = 0; i < 16; ++i) {
+    for (int k = 0; k < 16; ++k) {
+      // distances
+      glm::vec2 d00 = (1/16.f) * glm::vec2(i, k);
+      glm::vec2 d01 = (1/16.f) * glm::vec2(15 - i, k);
+      glm::vec2 d10 = (1/16.f) * glm::vec2(i, 15 - k);
+      glm::vec2 d11 = (1/16.f) * glm::vec2(15 - i, 15 - k);
+      p4(d00, d01, d10, d11);
+
+      // products
+      float p00 = glm::dot(g00, d00);
+      float p01 = glm::dot(g01, d01);
+      float p10 = glm::dot(g10, d10);
+      float p11 = glm::dot(g11, d11);
+      // float p00 = glm::length(g00);
+      // float p01 = glm::length(g01);
+      // float p10 = glm::length(g10);
+      // float p11 = glm::length(g11);
+
+      // heights and interpolation
+      float h0_ = glm::mix(p00, p01, d00.x);
+      float h1_ = glm::mix(p10, p11, d00.x);
+      float h__ = glm::mix(h0_, h1_, d00.y);
+
+      float v = h__;
+      
+      world(i, 50 + v * 10, k) = 1;
     }
   }
 
   std::vector<Instance> instances;
-  chunk.build(instances);
+  world.build(instances);
 
   GLuint worldVAO;
   struct VBO_ {
