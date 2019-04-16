@@ -8,7 +8,7 @@ constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 128;
 
 struct World {
-  u_char chunk[CHUNK_SIZE][CHUNK_SIZE][CHUNK_HEIGHT] = {}; // zero init in cpp
+  u_char chunk[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE] = {}; // zero init in cpp
 };
 
 const char* vertex_shader =
@@ -209,7 +209,8 @@ CreateProgram(GLuint& program_id) {
 }
 
 int main() {
-  RenderWindow window {"Hello World", 800, 600};
+  // RenderWindow window {"Hello World", 800, 600};
+  RenderWindow window {"Hello World"};
 
   Camera camera;
 
@@ -280,28 +281,48 @@ int main() {
 
   std::vector<Instance_> instances;
 
-  auto addCube = [&](glm::vec3 pos) {
-    instances.emplace_back(pos, 0);
-    instances.emplace_back(pos, 1);
-    instances.emplace_back(pos, 2);
-    instances.emplace_back(pos, 3);
-    instances.emplace_back(pos, 4);
-    instances.emplace_back(pos, 5);
+  auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs) {
+    if (airs[0]) instances.emplace_back(pos, 0);
+    if (airs[1]) instances.emplace_back(pos, 1);
+    if (airs[2]) instances.emplace_back(pos, 2);
+    if (airs[3]) instances.emplace_back(pos, 3);
+    if (airs[4]) instances.emplace_back(pos, 4);
+    if (airs[5]) instances.emplace_back(pos, 5);
   };
 
   // create world with flat plane
   World world;
   for (int i = 0; i < CHUNK_SIZE; ++i) {
-    for (int k = 0; k < CHUNK_HEIGHT; ++k) {
+    for (int k = 0; k < CHUNK_SIZE; ++k) {
       world.chunk[i][50][k] = 1;
     }
   }
 
+  auto isAir = [&](int i, int j, int k) {
+    if (i < 0 || j < 0 || k < 0 
+      || i >= CHUNK_SIZE 
+      || j >= CHUNK_HEIGHT
+      || k >= CHUNK_SIZE) {
+      return true;
+    }
+
+    return world.chunk[i][j][k] == 0;
+  };
+
   for (int i = 0; i < CHUNK_SIZE; ++i) {
-    for (int j = 0; j < CHUNK_SIZE; ++j) {
-      for (int k = 0; k < CHUNK_HEIGHT; ++k) {
+    for (int j = 0; j < CHUNK_HEIGHT; ++j) {
+      for (int k = 0; k < CHUNK_SIZE; ++k) {
         if (world.chunk[i][j][k] != 0) {
-          addCube({i, j, k});
+          std::array<bool, 6> airs = {
+            isAir(i+1, j, k),
+            isAir(i, j+1, k),
+            isAir(i, j, k+1),
+            isAir(i-1, j, k),
+            isAir(i, j-1, k),
+            isAir(i, j, k-1),
+          };
+
+          addCube({i, j, k}, airs);
         }
       }
     }
