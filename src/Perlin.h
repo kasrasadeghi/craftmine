@@ -31,10 +31,10 @@ float perlin(float x, float y) {
 
   // gradients
   glm::vec2 g00 = get_gradient(x0, y0);
-  glm::vec2 g01 = get_gradient(x1, y0);
-  glm::vec2 g10 = get_gradient(x0, y1);
+  glm::vec2 g01 = get_gradient(x0, y1);
+  glm::vec2 g10 = get_gradient(x1, y0);
   glm::vec2 g11 = get_gradient(x1, y1);
-  
+
   // corners
   glm::vec2 c00 {x0, y0};
   glm::vec2 c10 {x1, y0};
