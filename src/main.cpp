@@ -95,14 +95,19 @@ int main() {
       << glm::to_string(c) << " "
       << glm::to_string(d) << std::endl;
   };
+
+  // compute total step count
+  // float s = glm::max<float>(world.width, world.height);
+  float s = 16.f;
+  float ds = 1/s;
   
-  for (int i = 0; i < 16; ++i) {
-    for (int k = 0; k < 16; ++k) {
+  for (int i = 0; i < s; ++i) {
+    for (int k = 0; k < s; ++k) {
       // distances
-      glm::vec2 d00 = (1/16.f) * glm::vec2(i, k);
-      glm::vec2 d01 = (1/16.f) * glm::vec2(i - 15, k);
-      glm::vec2 d10 = (1/16.f) * glm::vec2(i, k - 15);
-      glm::vec2 d11 = (1/16.f) * glm::vec2(i - 15, k - 15);
+      glm::vec2 d00 = ds * glm::vec2(i, k);
+      glm::vec2 d01 = ds * glm::vec2(i - (s-1), k);
+      glm::vec2 d10 = ds * glm::vec2(i, k - (s-1));
+      glm::vec2 d11 = ds * glm::vec2(i - (s-1), k - (s-1));
 
       // products
       float p00 = glm::dot(g00, d00);
