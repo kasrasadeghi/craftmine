@@ -77,15 +77,16 @@ int main() {
   World world;
   srand(time(NULL));
 
-  // FIXME: 2 bugs
-  //   1. gradients cannot be negative
-  //   2. distance vectors should be negative if they point backwards
+  auto rand2 = []() -> glm::vec2 {
+    float theta = rand()/(float)RAND_MAX * glm::two_pi<float>();
+    return glm::vec2 {glm::cos(theta), glm::sin(theta)};
+  };
 
   // gradients
-  glm::vec2 g00 = glm::normalize(glm::vec2(rand()/10.f/RAND_MAX, rand()/10.f/RAND_MAX));
-  glm::vec2 g01 = glm::normalize(glm::vec2(rand()/10.f/RAND_MAX, rand()/10.f/RAND_MAX));
-  glm::vec2 g10 = glm::normalize(glm::vec2(rand()/10.f/RAND_MAX, rand()/10.f/RAND_MAX));
-  glm::vec2 g11 = glm::normalize(glm::vec2(rand()/10.f/RAND_MAX, rand()/10.f/RAND_MAX));
+  glm::vec2 g00 = rand2();
+  glm::vec2 g01 = rand2();
+  glm::vec2 g10 = rand2();
+  glm::vec2 g11 = rand2();
 
   auto p4 = [](auto a, auto b, auto c, auto d){
     std::cout 
@@ -94,28 +95,20 @@ int main() {
       << glm::to_string(c) << " "
       << glm::to_string(d) << std::endl;
   };
-  p4(g00, g01, g10, g11);
   
-  // exit(0);
-
   for (int i = 0; i < 16; ++i) {
     for (int k = 0; k < 16; ++k) {
       // distances
       glm::vec2 d00 = (1/16.f) * glm::vec2(i, k);
-      glm::vec2 d01 = (1/16.f) * glm::vec2(15 - i, k);
-      glm::vec2 d10 = (1/16.f) * glm::vec2(i, 15 - k);
-      glm::vec2 d11 = (1/16.f) * glm::vec2(15 - i, 15 - k);
-      p4(d00, d01, d10, d11);
+      glm::vec2 d01 = (1/16.f) * glm::vec2(i - 15, k);
+      glm::vec2 d10 = (1/16.f) * glm::vec2(i, k - 15);
+      glm::vec2 d11 = (1/16.f) * glm::vec2(i - 15, k - 15);
 
       // products
       float p00 = glm::dot(g00, d00);
       float p01 = glm::dot(g01, d01);
       float p10 = glm::dot(g10, d10);
       float p11 = glm::dot(g11, d11);
-      // float p00 = glm::length(g00);
-      // float p01 = glm::length(g01);
-      // float p10 = glm::length(g10);
-      // float p11 = glm::length(g11);
 
       // heights and interpolation
       float h0_ = glm::mix(p00, p01, d00.x);
