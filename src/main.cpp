@@ -199,7 +199,7 @@ int main() {
     // CHECK_GL_ERROR(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * obj_faces.size() * 3, obj_faces.data(), GL_STATIC_DRAW));
 
     float aspect = static_cast<float>(window.width()) / window.height();
-		glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.0001f, 1000.0f);
+		glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.5f, 1000.0f);
 
     glm::mat4 view_matrix = camera.get_view_matrix();
 
