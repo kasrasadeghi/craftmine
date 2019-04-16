@@ -1,7 +1,8 @@
 investigate making glad a static lib
+> DONE
+cull non-air-neighbor faces
 render instances boxes
 render boxes
-> DONE
 camera integration
 render box
 investigate renderwindow non fullscreen
