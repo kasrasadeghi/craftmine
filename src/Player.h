@@ -28,15 +28,26 @@ struct Player {
         // apply vel_y
         camera.translate(glm::vec3(0, _velocity_y, 0));
 
+
+        
+        
+
         // if now grounded, vel_y = 0
-        if (collided(world)) {
+        auto block = collided(world);
+        if (block != glm::ivec3(-1)) {
           _velocity_y = 0;
-          _grounded = true;
+          auto dy = (block.y + 0.5) - (camera.eye().y - 1.75);
+          camera.translate(glm::vec3{0, dy, 0});
+
+          glm::vec3 e = camera.eye();
+          // float close_x = block.x < e.x ? block.x + 0.5 : block.x - 0.5;
+          // float close_z = block.z < e.z ? block.z + 0.5 : block.z - 0.5;
+          camera.translate({block.x - e.x, 0, block.z - e.z});
         }
       }
+      _grounded = grounded(world);
     }
 
-    _grounded = grounded(world);
     
     // FIXME: if the tiles below you don't collide with you, then you are ungrounded. redo collision
   }
@@ -83,25 +94,32 @@ struct Player {
     return false;
   }
 
-  bool collided(const World& world) {
+  glm::ivec3 collided(const World& world) {
     glm::vec3 eye = camera.eye();
 
     glm::ivec3 world_index = glm::floor(eye);
 
-    for (int i = -1; i <= 1; ++i)
-    for (int k = -1; k <= 1; ++k) 
-    for (int j = -5; j <= 1; ++j) {
+    glm::ivec3 curr_best {-1};
+
+    for (int i = 1; i <= 1; ++i)
+    for (int k = 1; k <= 1; ++k) 
+    for (int j = 1; j <= 1; ++j) {
       glm::ivec3 box = world_index + glm::ivec3(i, j, k);
-            
       if (not world.isAir(box.x, box.y, box.z)) {
         if (Physics::verticalCollision(box, eye.y - 1.75, eye.y)
             && Physics::horizontalCollision(box, eye, 0.5)
           ) { 
-          return true;
+          if (curr_best.x > 0) {
+            if (glm::distance(eye, glm::vec3(curr_best)) > glm::distance(eye, glm::vec3(box))) {
+              curr_best = box;
+            }
+          } else {
+            curr_best = box;
+          }
         }
       }
     }
 
-    return false;
+    return curr_best;
   }
 };
