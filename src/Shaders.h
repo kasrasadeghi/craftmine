@@ -12,8 +12,10 @@ layout (location = 0) in vec4 vertex_position;
 // input from instances
 layout (location = 1) in vec3 instance_offset;
 layout (location = 2) in uint direction;
+layout (location = 3) in uint texture_index;
 
 out uint vs_direction;
+out uint vs_texture_index;
 
 void main()
 {
@@ -38,6 +40,7 @@ void main()
       break;
   }
   vs_direction = direction;
+  vs_texture_index = texture_index;
 
 	gl_Position = vec4(instance_offset, 0) + vec4(pos, 1);
 }
@@ -54,8 +57,13 @@ layout (triangle_strip, max_vertices = 4) out;
 uniform mat4 projection;
 uniform mat4 view;
 
+// input from vertex shader
 in uint vs_direction[];
+in uint vs_texture_index[];
+
+// pass along from vertex shader
 flat out uint sq_direction;
+flat out uint sq_texture_index;
 
 // output to fragment shader
 flat out vec4 normal;
@@ -67,7 +75,8 @@ out vec2 tex_coord;
 void main()
 {
   sq_direction = vs_direction[0];
-
+  sq_texture_index = vs_texture_index[0];
+  
 	vec3 AB = gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz;
 	vec3 AC = gl_in[2].gl_Position.xyz - gl_in[0].gl_Position.xyz;
 	normal = normalize(vec4(cross(AB, AC), 0));
@@ -114,7 +123,12 @@ R"zzz(#version 410 core
 uniform bool wireframe; 
 uniform vec4 light_position;
 
+uniform vec4 base_colors[10];
+uniform vec4 off_colors[10];
+
+// input from vertex shader passed through geometry shader
 flat in uint sq_direction;
+flat in uint sq_texture_index;
 
 flat in vec4 normal;
 in vec4 world_position;
@@ -126,7 +140,7 @@ flat in vec3 flag_color;
 out vec4 fragment_color;
 
 float rand(vec2 co){
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
 float blerp (float i00, float i10, float i01, float i11, float u, float v) {
@@ -258,7 +272,7 @@ void main()
   i = vec2(floor(i * 8))/8;
 
   float p = perlin(2 * i.x, 2 * i.y);
-  fragment_color = mix(vec4(0.2, 0.8, 0, 1), vec4(0, 0.6, 0, 1), p);
+  fragment_color = mix(base_colors[sq_texture_index], off_colors[sq_texture_index], p);
   fragment_color = height_atten(fragment_color);
 
 	bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
@@ -305,6 +319,7 @@ CreateProgram(GLuint& program_id) {
 	glBindAttribLocation(program_id, 0, "vertex_position");
   glBindAttribLocation(program_id, 1, "instance_offset");
   glBindAttribLocation(program_id, 2, "direction");
+  glBindAttribLocation(program_id, 3, "texture_index");
 	glBindFragDataLocation(program_id, 0, "fragment_color");
 	glLinkProgram(program_id);
 

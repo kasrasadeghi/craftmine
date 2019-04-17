@@ -9,11 +9,13 @@ constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 128;
 
 struct Instance {
-  Instance(glm::vec3 p, GLuint d): x(p.x), y(p.y), z(p.z), direction(d) {}
+  Instance(glm::vec3 p, GLuint d, GLuint ti):
+      x(p.x), y(p.y), z(p.z), direction(d), texture_index(ti) {}
   float x;
   float y;
   float z;
   GLuint direction; // 0 .. 5 = x, y, z, -x, -y, -z
+  GLuint texture_index;
 } __attribute__((packed));
 
 using std::array;
@@ -22,13 +24,13 @@ struct Chunk {
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
 
   void build(glm::ivec2 offset, std::vector<Instance>& instances) {
-    auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs) {
-      if (airs[0]) instances.emplace_back(pos, 0);
-      if (airs[1]) instances.emplace_back(pos, 1);
-      if (airs[2]) instances.emplace_back(pos, 2);
-      if (airs[3]) instances.emplace_back(pos, 3);
-      if (airs[4]) instances.emplace_back(pos, 4);
-      if (airs[5]) instances.emplace_back(pos, 5);
+    auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs, GLuint texture_index) {
+      if (airs[0]) instances.emplace_back(pos, 0, texture_index);
+      if (airs[1]) instances.emplace_back(pos, 1, texture_index);
+      if (airs[2]) instances.emplace_back(pos, 2, texture_index);
+      if (airs[3]) instances.emplace_back(pos, 3, texture_index);
+      if (airs[4]) instances.emplace_back(pos, 4, texture_index);
+      if (airs[5]) instances.emplace_back(pos, 5, texture_index);
     };
 
     auto isAir = [&](int i, int j, int k) {
@@ -55,7 +57,7 @@ struct Chunk {
           isAir(i, j, k-1),
         };
 
-        addCube({i + offset.x, j, k + offset.y}, airs);
+        addCube({i + offset.x, j, k + offset.y}, airs, 0);
       }
     }}}
   }

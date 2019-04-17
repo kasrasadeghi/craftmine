@@ -121,22 +121,38 @@ int main() {
     glVertexAttribIPointer(   2, 1, GL_UNSIGNED_INT, sizeof(Instance), (void*)(sizeof(glm::vec3)));
     glVertexAttribDivisor(    2, 1);
 
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(   3, 1, GL_UNSIGNED_INT, sizeof(Instance), (void*)(sizeof(glm::vec3) + sizeof(GLuint)));
+    glVertexAttribDivisor(    3, 1);
+
   GLuint program_id = 0;
 	CreateProgram(program_id);
   glUseProgram(program_id);
-  
+
 
   struct {
 		GLint projection = 0;
 		GLint view = 0;
 		GLint light_pos = 0;
     GLint wireframe = 0;
+    GLint bases = 0;
+    GLint offs = 0;
 	} uniform;
 
   uniform.projection = glGetUniformLocation(program_id, "projection");
 	uniform.view       = glGetUniformLocation(program_id, "view");
 	uniform.light_pos  = glGetUniformLocation(program_id, "light_position");
   uniform.wireframe  = glGetUniformLocation(program_id, "wireframe");
+  uniform.bases      = glGetUniformLocation(program_id, "base_colors");
+  uniform.offs       = glGetUniformLocation(program_id, "off_colors");
+
+  std::vector<glm::vec4> base_colors (10, glm::vec4(0, 0, 0, 1));
+  base_colors[0] = glm::vec4(0.2, 0.8, 0, 1);
+  glUniform4fv(uniform.bases, 10, (const GLfloat*)base_colors.data());
+
+  std::vector<glm::vec4> off_colors (10, glm::vec4(0, 0, 0, 1));
+  off_colors[0] = glm::vec4(0, 0.6, 0, 1);
+  glUniform4fv(uniform.offs, 10, (const GLfloat*)off_colors.data());
 
   glm::vec4 light_position {0, 10, 0, 1};
 
