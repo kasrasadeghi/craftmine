@@ -2,8 +2,10 @@
 #include "Camera.h"
 #include "Perlin.h"
 
+#include "Player.h"
 #include "Shaders.h"
 #include "World.h"
+#include "Physics.h"
 
 #include <iostream>
 #include <vector>
@@ -15,7 +17,7 @@ int main() {
   // RenderWindow window {"Hello World", 800, 600};
   RenderWindow window {"Hello World"};
 
-  Camera camera;
+  Player player;
 
   bool wireframe_mode = false;
   window.setKeyCallback([&](int key, int scancode, int action, int mods) {
@@ -23,12 +25,12 @@ int main() {
       window.close();
     }
 
-    if (key == GLFW_KEY_F && mods == GLFW_MOD_CONTROL && action == GLFW_RELEASE) {
+    if (key == GLFW_KEY_H && mods == GLFW_MOD_CONTROL && action == GLFW_RELEASE) {
       wireframe_mode = !wireframe_mode;
       glPolygonMode(GL_FRONT_AND_BACK, (wireframe_mode ? GL_LINE : GL_FILL));
     }
 
-    camera.handleKey(key, scancode, action, mods);
+    player.handleKey(key, scancode, action, mods);
   });
 
   struct MouseState_ {
@@ -57,8 +59,8 @@ int main() {
       } else {
         int dx = mouse_x - prev.x;
         int dy = mouse_y - prev.y;
-        camera.yaw(dx);
-        camera.pitch(dy);
+        player.camera.yaw(dx);
+        player.camera.pitch(dy);
 
         prev = {mouse_x, mouse_y};
       }
@@ -148,11 +150,24 @@ int main() {
 
   std::vector<glm::vec4> base_colors (10, glm::vec4(0, 0, 0, 1));
   base_colors[0] = glm::vec4(0.2, 0.8, 0, 1);
-  glUniform4fv(uniform.bases, 10, (const GLfloat*)base_colors.data());
+  base_colors[1] = glm::vec4(0.2, 0.8, 0, 1);
+  base_colors[2] = glm::vec4(1, 0, 0, 1);
 
+  auto update_bases = [&](){
+    glUniform4fv(uniform.bases, 10, (const GLfloat*)base_colors.data());
+  };
+  update_bases();
+  
   std::vector<glm::vec4> off_colors (10, glm::vec4(0, 0, 0, 1));
   off_colors[0] = glm::vec4(0, 0.6, 0, 1);
-  glUniform4fv(uniform.offs, 10, (const GLfloat*)off_colors.data());
+  off_colors[1] = glm::vec4(0, 0.6, 0, 1);
+  off_colors[2] = glm::vec4(1, 0, 0, 1);
+
+  auto update_offs = [&](){
+    glUniform4fv(uniform.offs, 10, (const GLfloat*)off_colors.data());
+  };
+  update_offs();
+
 
   glm::vec4 light_position {0, 10, 0, 1};
 
@@ -165,6 +180,15 @@ int main() {
 		glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
+    
+    glm::vec3 l = player.camera.look();
+    auto forward = glm::normalize(glm::vec3(l.x, 0, l.z)) * Camera::zoom_speed;
+    if (window.getKey(GLFW_KEY_W)) { player.camera.translate(forward); }
+    if (window.getKey(GLFW_KEY_S)) { player.camera.translate(-forward); }
+    if (window.getKey(GLFW_KEY_A)) { player.camera.strafe(-1); }
+    if (window.getKey(GLFW_KEY_D)) { player.camera.strafe(1); }
+    if (window.getKey(GLFW_KEY_UP)) { player.camera.translate(player.camera.up() * glm::vec3(0.2)); }
+    if (window.getKey(GLFW_KEY_DOWN)) { player.camera.translate(-player.camera.up() * glm::vec3(0.2)); }
 
     glBindVertexArray(worldVAO);
 
@@ -183,15 +207,61 @@ int main() {
     float aspect = static_cast<float>(window.width()) / window.height();
 		glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.5f, 1000.0f);
 
-    glm::mat4 view_matrix = camera.get_view_matrix();
+    glm::mat4 view_matrix = player.camera.get_view_matrix();
+
+    glm::vec3 eye = player.camera.eye();
+
+    // COLLISION TESTING
+
+    auto isAir = [&](int i, int j, int k) {
+      if (i < 0 || j < 0 || k < 0 
+        || i >= world._width 
+        || j >= CHUNK_HEIGHT
+        || k >= world._height) {
+        return true;
+      }
+
+      return world(i, j, k) == 0;
+    };
+
+    glm::ivec3 world_index = glm::floor(eye/*  + glm::vec3(0, -1.75, 0) */);
+    std::cout << glm::to_string(world_index) << std::endl;
+    std::cout << not isAir(world_index.x, world_index.y, world_index.z) << std::endl;
+    
+
+    bool collided = false;
+    for (int i = -1; i <= 1; ++i)
+    for (int k = -1; k <= 1; ++k) 
+    for (int j = -3; j <= 1; ++j) {
+      glm::ivec3 box = world_index + glm::ivec3(i, j, k);
+            
+      if (not isAir(box.x, box.y, box.z)) {
+        if (Physics::verticalCollision(box, eye.y - 1.75, eye.y)
+            && Physics::horizontalCollision(box, eye, 0.5)
+          ) { 
+          collided = true;
+          break;
+        }
+      }
+    }
+
+    if (collided) {
+      base_colors[0] = base_colors[2];
+      off_colors[0] = off_colors[2];
+    } else {
+      base_colors[0] = base_colors[1];
+      off_colors[0] = off_colors[1];
+    }
+    update_bases();
+    update_offs();
 
     glUseProgram(program_id);
 
 		// Pass uniforms in.
 		glUniformMatrix4fv(uniform.projection, 1, GL_FALSE, &projection_matrix[0][0]);
-		glUniformMatrix4fv(uniform.view, 1, GL_FALSE, &view_matrix[0][0]);
-		glUniform4fv(      uniform.light_pos, 1, &light_position[0]);
-    glUniform1i(       uniform.wireframe, wireframe_mode);
+		glUniformMatrix4fv(uniform.view,       1, GL_FALSE, &view_matrix[0][0]);
+		glUniform4fv(      uniform.light_pos,  1, &light_position[0]);
+    glUniform1i(       uniform.wireframe,  wireframe_mode);
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
 

@@ -2,14 +2,6 @@
 #include <iostream>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/rotate_vector.hpp>
-#include <GLFW/glfw3.h>
-
-namespace {
-	float pan_speed = 0.5f;
-	float roll_speed = 0.1f;
-	float rotation_speed = 0.02f;
-	float zoom_speed = 0.5f;
-};
 
 glm::mat4 Camera::get_view_matrix() const {
 	// https://www.3dgep.com/understanding-the-view-matrix/
@@ -29,6 +21,14 @@ glm::mat4 Camera::get_view_matrix() const {
 
 const glm::vec3& Camera::eye() const {
 	return _eye;
+}
+
+const glm::vec3& Camera::look() const {
+	return _look;
+}
+
+const glm::vec3& Camera::up() const {
+	return _up;
 }
 
 glm::vec3 Camera::right() const {
@@ -59,26 +59,6 @@ void Camera::yaw(float k) {
 	_look = glm::normalize(glm::rotate(_look, k * rotation_speed, _up));
 }
 
-void Camera::handleKey(int key, int scancode, int action, int mods) {
-	if (action == GLFW_RELEASE) {
-		return;
-	}
-
-	if (key == GLFW_KEY_W) {
-		zoom(1);
-	} else if (key == GLFW_KEY_S) {
-		zoom(-1);
-	} else if (key == GLFW_KEY_A) {
-		strafe(-1);
-	} else if (key == GLFW_KEY_D) {
-		strafe(1);
-	} else if (key == GLFW_KEY_LEFT) {
-		roll(-1);
-	} else if (key == GLFW_KEY_RIGHT) {
-		roll(1);
-	} else if (key == GLFW_KEY_DOWN) {
-		vertical(-1);
-	} else if (key == GLFW_KEY_UP) {
-		vertical(1);
-	}
+void Camera::translate(glm::vec3 offset) {
+	_eye += offset;
 }

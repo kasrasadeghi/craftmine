@@ -110,8 +110,9 @@ public:
 
   /////////////////// Callbacks and Input ///////////////
 
-  int getKey(int key_code) {
-    return glfwGetKey(_window, key_code);
+  // returns true if the key is pressed
+  bool getKey(int key_code) {
+    return glfwGetKey(_window, key_code) == GLFW_PRESS;
   }
 
   glm::vec2 mousePos() {
