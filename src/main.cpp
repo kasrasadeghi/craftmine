@@ -175,11 +175,15 @@ int main() {
     // glfwGetFramebufferSize(window, &window_width, &window_height);
 		glViewport(0, 0, window.width(), window.height());
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glDepthFunc(GL_LESS);
+
     glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
+
+    glDisable(GL_BLEND);
     
     glm::vec3 l = player.camera.look();
     auto forward = glm::normalize(glm::vec3(l.x, 0, l.z)) * Camera::zoom_speed;
@@ -209,51 +213,10 @@ int main() {
 
     glm::mat4 view_matrix = player.camera.get_view_matrix();
 
-    glm::vec3 eye = player.camera.eye();
 
     // COLLISION TESTING
 
-    auto isAir = [&](int i, int j, int k) {
-      if (i < 0 || j < 0 || k < 0 
-        || i >= world._width 
-        || j >= CHUNK_HEIGHT
-        || k >= world._height) {
-        return true;
-      }
-
-      return world(i, j, k) == 0;
-    };
-
-    glm::ivec3 world_index = glm::floor(eye/*  + glm::vec3(0, -1.75, 0) */);
-    std::cout << glm::to_string(world_index) << std::endl;
-    std::cout << not isAir(world_index.x, world_index.y, world_index.z) << std::endl;
-    
-
-    bool collided = false;
-    for (int i = -1; i <= 1; ++i)
-    for (int k = -1; k <= 1; ++k) 
-    for (int j = -3; j <= 1; ++j) {
-      glm::ivec3 box = world_index + glm::ivec3(i, j, k);
-            
-      if (not isAir(box.x, box.y, box.z)) {
-        if (Physics::verticalCollision(box, eye.y - 1.75, eye.y)
-            && Physics::horizontalCollision(box, eye, 0.5)
-          ) { 
-          collided = true;
-          break;
-        }
-      }
-    }
-
-    if (collided) {
-      base_colors[0] = base_colors[2];
-      off_colors[0] = off_colors[2];
-    } else {
-      base_colors[0] = base_colors[1];
-      off_colors[0] = off_colors[1];
-    }
-    update_bases();
-    update_offs();
+    player.handleTick(world);
 
     glUseProgram(program_id);
 
@@ -264,6 +227,7 @@ int main() {
     glUniform1i(       uniform.wireframe,  wireframe_mode);
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
+
 
     window.swapBuffers();
     glfwPollEvents();

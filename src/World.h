@@ -86,7 +86,15 @@ struct World {
     _height = ch * CHUNK_SIZE;
   }
 
-  u_char& operator()(int i, int j, int k){
+  u_char& operator()(int i, int j, int k) {
+    int ci = i / CHUNK_SIZE;
+    int ck = k / CHUNK_SIZE;
+    int di = i % CHUNK_SIZE;
+    int dk = k % CHUNK_SIZE;
+    return _chunks.at(ci).at(ck).data.at(di).at(j).at(dk);
+  }
+
+  u_char operator()(int i, int j, int k) const {
     int ci = i / CHUNK_SIZE;
     int ck = k / CHUNK_SIZE;
     int di = i % CHUNK_SIZE;
@@ -101,5 +109,16 @@ struct World {
         _chunks[i][k].build({i*CHUNK_SIZE, k*CHUNK_SIZE}, instances);
       }
     }
+  }
+
+  bool isAir(int i, int j, int k) const {
+    if (i < 0 || j < 0 || k < 0 
+      || i >= _width 
+      || j >= CHUNK_HEIGHT
+      || k >= _height) {
+      return true;
+    }
+
+    return operator()(i, j, k) == 0;
   }
 };

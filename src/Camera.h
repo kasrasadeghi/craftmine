@@ -26,7 +26,7 @@ public:
 
 private:
 	glm::vec3 right() const;
-	glm::vec3 _eye = glm::vec3(-10, 72, -10);
+	glm::vec3 _eye = glm::vec3(20, 100, 20);
 	glm::vec3 _look = glm::normalize(glm::vec3(1, -1.5, 1));
 	glm::vec3 _up = glm::vec3(0.0f, 1.0, 0.0f);
 };
