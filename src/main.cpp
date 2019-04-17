@@ -1,6 +1,7 @@
 #include "RenderWindow.h"
 #include "Camera.h"
 #include "Perlin.h"
+#include "TextRenderer.h"
 
 #include "Player.h"
 #include "Shaders.h"
@@ -78,10 +79,6 @@ int main() {
   // create world with flat plane
   World world{256, 256};
   srand(time(NULL));
-
-  // compute total step count
-  float s = glm::max<float>(world._width, world._height);
-  float ds = 1/s;
   
   for (int i = 0; i < world._width; ++i) {
     for (int k = 0; k < world._height; ++k) {
@@ -171,6 +168,8 @@ int main() {
 
   glm::vec4 light_position {0, 10, 0, 1};
 
+  TextRenderer tr {(float)window.width(), (float)window.height()};
+
   while (window.isOpen()) {
     // glfwGetFramebufferSize(window, &window_width, &window_height);
 		glViewport(0, 0, window.width(), window.height());
@@ -228,6 +227,7 @@ int main() {
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
 
+    glEnable(GL_BLEND);
 
     window.swapBuffers();
     glfwPollEvents();
