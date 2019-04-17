@@ -11,12 +11,12 @@ namespace Physics {
   bool verticalCollision(glm::vec3 A, float pole0, float pole1) {
     float top = A.y + 0.5;
     float bot = A.y - 0.5;
-    return top > pole1 && bot < pole0;
+    return not(top < pole0 || bot > pole1);
   }
 
   bool horizontalCollision(glm::vec3 A, glm::vec3 pole, float radius) {
     return A.x + 0.5 > pole.x - radius && A.z + 0.5 > pole.z - radius
-        && A.x - 0.5 < pole.x + radius && A.z + 0.5 < pole.z - radius;
+        && A.x - 0.5 < pole.x + radius && A.z - 0.5 < pole.z + radius;
   }
     
 }
