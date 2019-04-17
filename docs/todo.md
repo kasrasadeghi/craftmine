@@ -1,6 +1,7 @@
 investigate making glad a static lib
 advanced terrain gen - 3d perlin noise, air cutoff with gradient, cave digouts
 > DONE
+glsl perlin texture
 perlin noise
 cull non-air-neighbor faces
 render instances boxes
