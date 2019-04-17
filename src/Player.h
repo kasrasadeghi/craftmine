@@ -35,6 +35,8 @@ struct Player {
         }
       }
     }
+
+    _grounded = grounded(world);
     
     // FIXME: if the tiles below you don't collide with you, then you are ungrounded. redo collision
   }
