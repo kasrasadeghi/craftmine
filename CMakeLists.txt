@@ -15,7 +15,11 @@ ENDFOREACH(cmake)
 MESSAGE(STATUS "stdgl: ${stdgl_libraries}")
 MESSAGE(STATUS "lib sources: ${lib_source_dirs}")
 
-ADD_SUBDIRECTORY(src)
+if (GTEST)
+	ADD_SUBDIRECTORY(test)
+else (GTEST)
+	ADD_SUBDIRECTORY(src)
+endif (GTEST)
 
 # IF (EXISTS ${CMAKE_SOURCE_DIR}/sln/CMakeLists.txt)
 # 	ADD_SUBDIRECTORY(sln)
