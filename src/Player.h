@@ -42,7 +42,7 @@ struct Player {
     }
     // FIXME: maybe: if we're collided and grounded bump up
     // FIXME: if the tiles below you don't collide with you, then you are ungrounded. redo collision
-    
+
   }
 
   void jump() {
@@ -122,7 +122,7 @@ struct Player {
       }
     }
 
-    // FIXME: menger flying
+    // menger flying
     if (key == GLFW_KEY_F && action == GLFW_RELEASE && (mods & GLFW_MOD_CONTROL)) {
       if (_current_mode == Mode::Menger) {
         _current_mode = Mode::Survival;
