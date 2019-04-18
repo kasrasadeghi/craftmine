@@ -1,9 +1,14 @@
 #pragma once
 
 #include <glad/glad.h>
-#include <vector>
-#include <sys/types.h>
 #include <glm/glm.hpp>
+
+#include "GlmHashes.h"
+
+#include <sys/types.h>
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
 
 constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 128;
@@ -63,35 +68,26 @@ struct Chunk {
   }
 };
 
+struct Player;
+
 struct World {
-  int _width;
-  int _height;
-  std::vector<std::vector<Chunk>> _chunks;
+  std::unordered_map<glm::ivec2, Chunk> _chunks;
+  std::unordered_set<glm::ivec2> _active_set;
+  glm::ivec2 _player_chunk_index;
+  bool _dirty = false;
 
-  World() {
-    _chunks.emplace_back();
-    _chunks.back().emplace_back();
-  }
+  World(Player& player);
 
-  World(int width, int height) {
-    int cw = width / CHUNK_SIZE;
-    int ch = height / CHUNK_SIZE;
-    for (int i = 0; i < cw; ++i) {
-      _chunks.emplace_back();    
-      for (int k = 0; k < ch; ++k) {
-        _chunks.back().emplace_back();
-      }
-    }
-    _width = cw * CHUNK_SIZE;
-    _height = ch * CHUNK_SIZE;
-  }
+  bool dirty() const { return _dirty; }
+
+  void handleTick(Player& player);
 
   u_char& operator()(int i, int j, int k) {
     int ci = i / CHUNK_SIZE;
     int ck = k / CHUNK_SIZE;
     int di = i % CHUNK_SIZE;
     int dk = k % CHUNK_SIZE;
-    return _chunks.at(ci).at(ck).data.at(di).at(j).at(dk);
+    return _chunks.at(glm::ivec2{ci, ck}).data.at(di).at(j).at(dk);
   }
 
   u_char operator()(int i, int j, int k) const {
@@ -99,26 +95,35 @@ struct World {
     int ck = k / CHUNK_SIZE;
     int di = i % CHUNK_SIZE;
     int dk = k % CHUNK_SIZE;
-    return _chunks.at(ci).at(ck).data.at(di).at(j).at(dk);
+    return _chunks.at(glm::ivec2{ci, ck}).data.at(di).at(j).at(dk);
   }
 
   void build(std::vector<Instance>& instances) {
-    // _chunks[0][0].build(instances);
-    for (uint i = 0; i < _chunks.size(); ++i) {
-      for (uint k = 0; k < _chunks[0].size(); ++k) {
-        _chunks[i][k].build({i*CHUNK_SIZE, k*CHUNK_SIZE}, instances);
-      }
+    instances.clear();
+    for (const glm::ivec2& chunk_index : _active_set) {
+      _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances);
     }
   }
 
   bool isAir(int i, int j, int k) const {
-    if (i < 0 || j < 0 || k < 0 
-      || i >= _width 
-      || j >= CHUNK_HEIGHT
-      || k >= _height) {
-      return true;
+    if (j < 0 || j >= CHUNK_HEIGHT) {
+      if (hasChunk(toChunk(glm::ivec3(i, 0, k)))) {
+        // loaded chunk
+        return operator()(i, j, k) == 0;
+      } else {
+        // unloaded chunk
+        return true;
+      }
     }
+    // wrong y
+    return true;
+  }
 
-    return operator()(i, j, k) == 0;
+  static glm::ivec2 toChunk(glm::ivec3 block) {
+    return glm::ivec2(block.x / CHUNK_SIZE, block.z / CHUNK_SIZE);
+  }
+
+  bool hasChunk(glm::ivec2 chunk_index) const {
+    return _chunks.count(chunk_index) != 0;
   }
 };

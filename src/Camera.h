@@ -1,6 +1,4 @@
-#ifndef CAMERA_H
-#define CAMERA_H
-
+#pragma once 
 #include <glm/glm.hpp>
 
 class Camera {
@@ -31,5 +29,3 @@ private:
 	glm::vec3 _look = glm::normalize(glm::vec3(1, -1.5, 1));
 	glm::vec3 _up = glm::vec3(0.0f, 1.0, 0.0f);
 };
-
-#endif

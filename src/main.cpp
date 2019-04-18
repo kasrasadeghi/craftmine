@@ -1,12 +1,11 @@
 #include "RenderWindow.h"
 #include "Camera.h"
-#include "Perlin.h"
 #include "TextRenderer.h"
 
+#include "TerrainGen.h"
 #include "Player.h"
 #include "Shaders.h"
 #include "World.h"
-#include "Physics.h"
 
 #include <iostream>
 #include <vector>
@@ -15,6 +14,8 @@
 #include <glm/gtx/string_cast.hpp>
 
 int main() {
+  srand(time(NULL));
+
   // RenderWindow window {"Hello World", 800, 600};
   RenderWindow window {"Hello World"};
   window.setMousePos(window.width()/2.f, window.height()/2.f);
@@ -93,17 +94,8 @@ int main() {
   faces.emplace_back(0, 1, 2);
 
   // create world with flat plane
-  World world{256, 256};
-  srand(time(NULL));
-  
-  for (int i = 0; i < world._width; ++i) {
-    for (int k = 0; k < world._height; ++k) {
-      int h = 50 + perlin(i / 50.f, k / 50.f) * 10;
-      world(i, h, k) = 1;
-      world(i, h-1, k) = 1;
-      world(i, h-2, k) = 1;
-    }
-  }
+  World world(player);
+  TerrainGen::spawn(world, player, 128, 128);
 
   std::vector<Instance> instances;
   world.build(instances);
@@ -214,17 +206,21 @@ int main() {
     glBindVertexArray(worldVAO);
 
     // if world is dirty
-    // // Setup vertex data in a VBO.
-    // CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, g_buffer_objects[kGeometryVao][kVertexBuffer]));
-    // // NOTE: We do not send anything right now, we just describe it to OpenGL.
-    // CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * obj_vertices.size() * 4, obj_vertices.data(), GL_STATIC_DRAW));
-    // CHECK_GL_ERROR(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
-    // CHECK_GL_ERROR(glEnableVertexAttribArray(0));
+    if (world.dirty()) {
+      for (int i = -1; i <= 1; ++i)
+      for (int k = -1; k <= 1; ++k) {
+        auto chunk_index = World::toChunk(player.blockPosition());
+        glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
+        if (world._chunks.count(curr_index) != 0) {
+          TerrainGen::chunk(world, curr_index);
+        }
+      }
 
-    // // Setup element array buffer.
-    // CHECK_GL_ERROR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_buffer_objects[kGeometryVao][kIndexBuffer]));
-    // CHECK_GL_ERROR(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * obj_faces.size() * 3, obj_faces.data(), GL_STATIC_DRAW));
-
+      world.build(instances);
+      glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
+    }
+  
     float aspect = static_cast<float>(window.width()) / window.height();
 		glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.5f, 1000.0f);
 
@@ -234,6 +230,7 @@ int main() {
     // COLLISION TESTING
 
     player.handleTick(world);
+    world.handleTick(player);
 
     glUseProgram(program_id);
 

@@ -30,8 +30,6 @@ struct Player {
         // apply vel_y
         camera.translate(glm::vec3(0, _velocity_y, 0));
       }
-      auto e = camera.eye();
-    
       _grounded = grounded(world);
       if (_grounded) {
         auto wi = glm::floor(feet());
@@ -41,7 +39,6 @@ struct Player {
       }
     }
     // FIXME: maybe: if we're collided and grounded bump up
-    // FIXME: if the tiles below you don't collide with you, then you are ungrounded. redo collision
 
   }
 
@@ -52,7 +49,7 @@ struct Player {
   }
 
   void reset() {
-    camera.setPos(glm::vec3(20, 100, 20));
+    setPos(glm::vec3(20, 100, 20));
   }
 
   void moveDown() {
@@ -62,7 +59,7 @@ struct Player {
   }
 
   void move(int direction, World& world) {
-    auto e = camera.eye();
+    auto p = head();
 
     switch(direction) {
     case 0:  // right
@@ -76,37 +73,11 @@ struct Player {
     }
 
     if (collided(world)) {
-      camera.setPos(e);
+      setPos(p);
     }
   }
 
-  
-  void moveRight(const World& world) {
-    
-  }
-  void moveLeft(const World& world) {
-    auto e = camera.eye();
-    camera.strafe(1);
-    if (collided(world)) {
-      camera.setPos(e);
-    }
-  }
-  void moveForward(const World& world) {
-    auto e = camera.eye();
-    camera.translate(forward());
-    if (collided(world)) {
-      camera.setPos(e);
-    }
-  }
-  void moveBack(const World& world) {
-    auto e = camera.eye();
-    camera.translate(-forward());
-    if (collided(world)) {
-      camera.setPos(e);
-    }
-  }
-
-  glm::vec3 forward() {
+  glm::vec3 forward() const {
     glm::vec3 l = camera.look();
     return glm::normalize(glm::vec3(l.x, 0, l.z)) * Camera::zoom_speed;
   }
@@ -160,9 +131,8 @@ struct Player {
   }
 
   bool grounded(const World& world) {
-    glm::vec3 eye = camera.eye();
 
-    glm::ivec3 world_index = glm::floor(eye);
+    glm::ivec3 world_index = glm::floor(head());
 
     for (int i = -1; i <= 1; ++i)
     for (int k = -1; k <= 1; ++k) 
@@ -170,8 +140,8 @@ struct Player {
       glm::ivec3 box = world_index + glm::ivec3(i, j, k);
             
       if (not world.isAir(box.x, box.y, box.z)) {
-        if (Physics::verticalCollision(box, feet().y, eye.y)
-            && Physics::horizontalCollision(box, eye, 0.5)
+        if (Physics::verticalCollision(box, feet().y, head().y)
+            && Physics::horizontalCollision(box, head(), 0.5)
           ) {
           return true;
         }
@@ -182,17 +152,16 @@ struct Player {
   }
 
   bool collided(const World& world) {
-    glm::vec3 eye = camera.eye();
 
-    glm::ivec3 world_index = glm::floor(eye);
+    glm::ivec3 world_index = blockPosition();
 
     for (int i = -1; i <= 1; ++i)
     for (int k = -1; k <= 1; ++k) 
     for (int j = -5; j <= 1; ++j) {
       glm::ivec3 box = world_index + glm::ivec3(i, j, k);
       if (not world.isAir(box.x, box.y, box.z)) {
-        if (Physics::verticalCollision(box, feet().y+0.1, eye.y)
-            && Physics::horizontalCollision(box, eye, 0.5))
+        if (Physics::verticalCollision(box, feet().y+0.1, head().y)
+            && Physics::horizontalCollision(box, head(), 0.5))
         {
           return true;
         }
@@ -204,5 +173,18 @@ struct Player {
 
   glm::vec3 feet() const {
     return camera.eye() - glm::vec3(0, 1.75, 0);
+  }
+
+  // gets the eye position 
+  const glm::vec3& head() const {
+    return camera.eye();
+  }
+
+  void setPos(glm::vec3 pos) {
+    camera.setPos(pos);
+  }
+
+  glm::ivec3 blockPosition() const {
+    return glm::floor(feet());
   }
 };
