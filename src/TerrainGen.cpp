@@ -2,6 +2,7 @@
 #include "World.h"
 #include "Player.h"
 #include "Perlin.h"
+#include "Terrain.h"
 
 // FIXME: is every chunk actually only loaded once?
 
@@ -26,14 +27,25 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
 
+  auto octave = [](int h, bool v){
+    using namespace Terrain;
+    if (h < 50 && v) { return STONE; }
+    if (h < 55 && v) { return DIRT; }
+    if (v)           { return GRASS; }
+    if (h < 45 && not v) { return WATER; }
+    return AIR;
+  };
+
   // FIXME: is everything in this function actually in the same chunk?
 
   for (int i = 0; i < CHUNK_SIZE; ++i)
   for (int k = 0; k < CHUNK_SIZE; ++k) {
-    int h = 50 + perlin((bi + i) / 50.f, (bk + k) / 50.f) * 10;
-    world(bi + i, h,   bk + k) = 1;
-    world(bi + i, h-1, bk + k) = 1;
-    world(bi + i, h-2, bk + k) = 1;
+    int h = 50 + perlin((bi + i) / 50.f, (bk + k) / 50.f) * 30;
+    h = glm::clamp(h, 0, 127);
+
+    for (int j = 0; j < 80; ++j) {
+      world(bi + i, j, bk + k) = octave(j, j <= h);
+    }
   }
 
   world._chunks[chunk_index].generated = true;

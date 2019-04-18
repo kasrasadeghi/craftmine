@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "Shaders.h"
 #include "World.h"
+#include "Terrain.h"
 
 #include <iostream>
 #include <vector>
@@ -162,17 +163,14 @@ int main() {
   uniform.offs       = glGetUniformLocation(program_id, "off_colors");
 
   std::vector<glm::vec4> base_colors (10, glm::vec4(0, 0, 0, 1));
-  base_colors[0] = glm::vec4(0.2, 0.8, 0, 1);
-  base_colors[1] = glm::vec4(1, 0, 0, 1);
+  std::vector<glm::vec4> off_colors  (10, glm::vec4(0, 0, 0, 1));
+
+  Terrain::setColors(base_colors, off_colors);
 
   auto update_bases = [&](){
     glUniform4fv(uniform.bases, 10, (const GLfloat*)base_colors.data());
   };
   update_bases();
-  
-  std::vector<glm::vec4> off_colors (10, glm::vec4(0, 0, 0, 1));
-  off_colors[0] = glm::vec4(0, 0.6, 0, 1);
-  off_colors[1] = glm::vec4(1, 0, 0, 1);
 
   auto update_offs = [&](){
     glUniform4fv(uniform.offs, 10, (const GLfloat*)off_colors.data());
@@ -196,7 +194,8 @@ int main() {
     glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 
-    glDisable(GL_BLEND);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_MULTISAMPLE);
 
@@ -225,24 +224,34 @@ int main() {
     // if world is dirty
     if (world.dirty()) {
 
-      auto get_chunk = [&](glm::ivec2 chunk_index) {
+      for (const glm::ivec2& chunk_index : world._active_set) {
         if (not world.hasChunk(chunk_index)) {
           world._chunks[chunk_index] = {};
         }
         if (not world.isChunkGenerated(chunk_index)) {
           TerrainGen::chunk(world, chunk_index);
         }
-      };
-
-      std::vector<std::future<void>> handles;
-
-      for (const glm::ivec2& chunk_index : world._active_set) {
-        handles.emplace_back(std::async(std::launch::async, get_chunk, chunk_index));
       }
 
-      for (auto &handle : handles) {
-          handle.get();
-      }
+      // FIXME: simultaneous terrain gen is unstable
+      // auto get_chunk = [&](glm::ivec2 chunk_index) {
+        // if (not world.hasChunk(chunk_index)) {
+        //   world._chunks[chunk_index] = {};
+        // }
+        // if (not world.isChunkGenerated(chunk_index)) {
+        //   TerrainGen::chunk(world, chunk_index);
+        // }
+      // };
+
+      // std::vector<std::future<void>> handles;
+
+      // for (const glm::ivec2& chunk_index : world._active_set) {
+      //   handles.emplace_back(std::async(std::launch::async, get_chunk, chunk_index));
+      // }
+
+      // for (auto &handle : handles) {
+      //   handle.get();
+      // }
 
       world.build(instances);
       glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);

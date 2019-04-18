@@ -179,6 +179,7 @@ float ProceduralNoise(float u, float v) {
 }
 
 float TWO_PI = 6.28318530717958647692528676655900576;
+#define WATER 3
 
 vec2 get_gradient(int i, int j) {
   float theta = rand(vec2(i, j));
@@ -238,7 +239,7 @@ vec4 axis_color() {
 }
 
 vec4 height_atten(vec4 color) {
-  float w = (52 - world_position.y)/15;
+  float w = (70 - world_position.y)/35;
   return mix(vec4(0, 0, 0, 0), color, 1 - w);
 }
 
@@ -274,12 +275,18 @@ void main()
   float p = perlin(2 * i.x, 2 * i.y);
   fragment_color = mix(base_colors[sq_texture_index], off_colors[sq_texture_index], p);
   fragment_color = height_atten(fragment_color);
-
-	bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
-	if (wireframe && is_frame) {
-		fragment_color = vec4(0, float(is_frame), 0, 1);
-	}
+	
   fragment_color = menger_color(fragment_color);
+  // if (sq_texture_index == WATER) fragment_color.w = 0.5; //FIXME: water should be see-through
+  if (sq_texture_index == WATER) fragment_color.w = 1;
+  else fragment_color.w = 1;
+
+  if (wireframe) {
+    bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
+    if (is_frame) {
+      fragment_color = vec4(0, float(is_frame), 0, 1);
+    }
+  }
 }
 )zzz";
 

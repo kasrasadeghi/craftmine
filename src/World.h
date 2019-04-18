@@ -65,7 +65,7 @@ struct Chunk {
           isAir(i, j, k-1),
         };
 
-        addCube({i + offset.x, j, k + offset.y}, airs, 0);
+        addCube({i + offset.x, j, k + offset.y}, airs, data[i][j][k]);
       }
     }}}
   }
