@@ -16,6 +16,7 @@ public:
 	const glm::vec3& up() const;
 
 	void translate(glm::vec3 offset);
+	void setPos(glm::vec3 pos);
 
 	void zoom(float k);
 	void strafe(float k);

@@ -62,3 +62,7 @@ void Camera::yaw(float k) {
 void Camera::translate(glm::vec3 offset) {
 	_eye += offset;
 }
+
+void Camera::setPos(glm::vec3 pos) {
+	_eye = pos;
+}

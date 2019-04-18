@@ -168,7 +168,6 @@ int main() {
   };
   update_offs();
 
-
   glm::vec4 light_position {0, 10, 0, 1};
 
   TextRenderer tr {(float)window.width(), (float)window.height()};
@@ -186,15 +185,14 @@ int main() {
 		glCullFace(GL_BACK);
 
     glDisable(GL_BLEND);
+
     
-    glm::vec3 l = player.camera.look();
-    auto forward = glm::normalize(glm::vec3(l.x, 0, l.z)) * Camera::zoom_speed;
-    if (window.getKey(GLFW_KEY_W)) { player.moveForward(); }
-    if (window.getKey(GLFW_KEY_S)) { player.moveBackward(); }
-    if (window.getKey(GLFW_KEY_A)) { player.moveRight(); }
-    if (window.getKey(GLFW_KEY_D)) { player.moveLeft(); }
+    if (window.getKey(GLFW_KEY_W)) { player.move(2, world);; }
+    if (window.getKey(GLFW_KEY_S)) { player.move(3, world); }
+    if (window.getKey(GLFW_KEY_A)) { player.move(0, world); }
+    if (window.getKey(GLFW_KEY_D)) { player.move(1, world); }
     if (window.getKey(GLFW_KEY_UP)) { player.jump(); }
-    if (window.getKey(GLFW_KEY_DOWN)) { player.down(); }
+    if (window.getKey(GLFW_KEY_DOWN)) { player.moveDown(); }
 
     glBindVertexArray(worldVAO);
 
@@ -218,7 +216,7 @@ int main() {
 
     // COLLISION TESTING
 
-    player.handleTick(world, tr);
+    player.handleTick(world);
 
     glUseProgram(program_id);
 
@@ -230,11 +228,9 @@ int main() {
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
 
-    auto blocks = player.collided(world);
     tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
-    if (blocks.size() != 0) {
-      tr.renderText("collided: ", 100, 50, 1, glm::vec4(1));
-      tr.renderText(glm::to_string(blocks[0]), 100, 100, 1, glm::vec4(1));
+    if (player.collided(world)) {
+      tr.renderText("collided", 100, 50, 1, glm::vec4(1));
     }
 
     window.swapBuffers();
