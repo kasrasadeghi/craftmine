@@ -48,7 +48,7 @@ struct Chunk {
         || k >= CHUNK_SIZE) {
         return true;
       }
-      
+
       return data[i][j][k] == 0;
     };
 
@@ -127,6 +127,10 @@ struct World {
     }
     // wrong y
     return true;
+  }
+
+  static glm::ivec3 toBlock(glm::vec3 pos) {
+    return glm::round(pos);
   }
 
   static glm::ivec2 toChunk(glm::ivec3 block) {

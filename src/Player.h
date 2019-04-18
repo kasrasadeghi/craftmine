@@ -121,6 +121,6 @@ struct Player {
   }
 
   glm::ivec3 blockPosition() const {
-    return glm::floor(feet());
+    return glm::round(feet());
   }
 };
