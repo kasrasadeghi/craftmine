@@ -10,6 +10,7 @@ chunk load and unload from disk
 background terrain gen
 async instance gen
 water transparency
+use local isAir when possible in chunk instance building
 > DONE
 chunk instance caching
 octaves
