@@ -245,12 +245,10 @@ int main() {
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
 
     tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
-    if (player.collided(world)) {
-      tr.renderText("collided", 100, 50, 1, glm::vec4(1));
-    }
-    tr.renderText("player pos: " + glm::to_string(player.feet()), 200, 50, 1, glm::vec4(1));
-    tr.renderText("player pos: " + glm::to_string(player.blockPosition()), 200, 80, 1, glm::vec4(1));
-    tr.renderText("chunk pos:  " + glm::to_string(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
+    tr.renderText((player.collided(world) ? "" : "not ") + std::string("collided"), 100, 230, 1, glm::vec4(1));
+    tr.renderText("player pos:   " + glm::to_string(player.feet()), 200, 50, 1, glm::vec4(1));
+    tr.renderText("player block: " + glm::to_string(player.blockPosition()), 200, 80, 1, glm::vec4(1));
+    tr.renderText("chunk pos:    " + glm::to_string(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
     tr.renderText("chunk loaded? " + std::string(world.hasChunk(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 140, 1, glm::vec4(1));
 
     window.swapBuffers();

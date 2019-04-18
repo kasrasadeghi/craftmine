@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "World.h"
 #include "Physics.h"
+#include <iostream>
 
 void Player::handleTick(const World& world){
   // if not on ground, tick gravity
@@ -18,7 +19,7 @@ void Player::handleTick(const World& world){
     // FIXME: cast ray to ground and then ground if reached by current velocity and then place player on ground
     if (_grounded) {
       // FIXME: flooring does not get your block because the blocks are -0.5 -> int -> 0.5, not int -> int + 1
-      auto wi = glm::floor(feet());
+      auto wi = glm::round(feet());
       if (world(wi.x, wi.y, wi.z)) {
         camera.setPos({feet().x, wi.y + 2.25f, feet().z});
       }
@@ -30,13 +31,12 @@ void Player::handleTick(const World& world){
 
   bool Player::grounded(const World& world) {
 
-    glm::ivec3 world_index = glm::floor(head());
+    glm::ivec3 world_index = glm::round(head());
 
     for (int i = -1; i <= 1; ++i)
     for (int k = -1; k <= 1; ++k) 
     for (int j = -3 ; j <= -1; ++j) {
       glm::ivec3 box = world_index + glm::ivec3(i, j, k);
-            
       if (not world.isAir(box.x, box.y, box.z)) {
         if (Physics::verticalCollision(box, feet().y, head().y)
             && Physics::horizontalCollision(box, head(), 0.5)

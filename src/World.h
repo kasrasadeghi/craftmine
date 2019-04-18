@@ -115,8 +115,9 @@ struct World {
   }
 
   bool isAir(int i, int j, int k) const {
-    if (j < 0 || j >= CHUNK_HEIGHT) {
-      if (hasChunk(toChunk(glm::ivec3(i, 0, k)))) {
+    if (j > 0 || j <= CHUNK_HEIGHT) {
+      auto chunk = toChunk(glm::ivec3(i, 0, k));
+      if (hasChunk(chunk) && isChunkGenerated(chunk)) {
         // loaded chunk
         return operator()(i, j, k) == 0;
       } else {
@@ -126,6 +127,10 @@ struct World {
     }
     // wrong y
     return true;
+  }
+
+  static glm::ivec3 toBlock(glm::vec3 pos) {
+    return glm::round(pos);
   }
 
   static glm::ivec2 toChunk(glm::ivec3 block) {
