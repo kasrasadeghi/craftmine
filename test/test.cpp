@@ -88,3 +88,21 @@ TEST(Physics, player_collision) {
   std::cout << (int)world(0, 50, 0) << std::endl;
   ASSERT_TRUE(test());
 }
+
+TEST(Physics, box_circle) {
+  using namespace Physics;
+  auto huh = lineBoxIntersection({0, 0}, {1, 0});
+  auto what = glm::vec2{0.5, 0};
+  ASSERT_EQ(huh, what);
+
+  huh = lineBoxIntersection({0, 0}, {0, 0.1});
+  // std::cout << glm::to_string(huh) << std::endl;
+
+  huh = lineBoxIntersection({0, 0}, {1, 0});
+
+  huh = boxCircleOverlap({0, 0}, {0.6, 0}, 0.5);
+  std::cout << glm::to_string(huh) << std::endl;
+
+  huh = boxCircleOverlap({1, 1}, {1 + 0.5 * 1.8, 1 + 0.5 * 1.8}, 0.5);
+  std::cout << glm::to_string(huh) << std::endl;
+}
