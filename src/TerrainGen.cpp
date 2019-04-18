@@ -35,5 +35,6 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     world(bi + i, h-1, bk + k) = 1;
     world(bi + i, h-2, bk + k) = 1;
   }
-  
+
+  world._chunks[chunk_index].generated = true;
 }

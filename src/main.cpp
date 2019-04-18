@@ -163,8 +163,7 @@ int main() {
 
   std::vector<glm::vec4> base_colors (10, glm::vec4(0, 0, 0, 1));
   base_colors[0] = glm::vec4(0.2, 0.8, 0, 1);
-  base_colors[1] = glm::vec4(0.2, 0.8, 0, 1);
-  base_colors[2] = glm::vec4(1, 0, 0, 1);
+  base_colors[1] = glm::vec4(1, 0, 0, 1);
 
   auto update_bases = [&](){
     glUniform4fv(uniform.bases, 10, (const GLfloat*)base_colors.data());
@@ -173,8 +172,7 @@ int main() {
   
   std::vector<glm::vec4> off_colors (10, glm::vec4(0, 0, 0, 1));
   off_colors[0] = glm::vec4(0, 0.6, 0, 1);
-  off_colors[1] = glm::vec4(0, 0.6, 0, 1);
-  off_colors[2] = glm::vec4(1, 0, 0, 1);
+  off_colors[1] = glm::vec4(1, 0, 0, 1);
 
   auto update_offs = [&](){
     glUniform4fv(uniform.offs, 10, (const GLfloat*)off_colors.data());
@@ -207,7 +205,7 @@ int main() {
       if (window.getKey(GLFW_KEY_S)) { player.move(3, world); }
       if (window.getKey(GLFW_KEY_A)) { player.move(0, world); }
       if (window.getKey(GLFW_KEY_D)) { player.move(1, world); }
-      if (window.getKey(GLFW_KEY_UP)) { player.jump(); }
+      if (window.getKey(GLFW_KEY_UP) || window.getKey(GLFW_KEY_SPACE)) { player.jump(); }
       if (window.getKey(GLFW_KEY_DOWN)) { player.moveDown(); }
     }
     
@@ -268,6 +266,11 @@ int main() {
     tr.renderText("player block: " + glm::to_string(player.blockPosition()), 200, 80, 1, glm::vec4(1));
     tr.renderText("chunk pos:    " + glm::to_string(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
     tr.renderText("chunk loaded? " + std::string(world.hasChunk(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 140, 1, glm::vec4(1));
+    tr.renderText("chunk genned? " + std::string(world.isChunkGenerated(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 170, 1, glm::vec4(1));
+    for (int i = 0; i < 3; ++i) {
+      auto p = player.blockPosition();
+      tr.renderText((world(p.x, p.y - i, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
+    }
 
     window.swapBuffers();
     glfwPollEvents();

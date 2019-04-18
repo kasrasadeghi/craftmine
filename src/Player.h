@@ -95,7 +95,7 @@ struct Player {
     }
 
 
-    if (key == GLFW_KEY_SPACE && _grounded && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_SPACE && _grounded && action == GLFW_PRESS && _current_mode == Mode::Survival) {
       _grounded = false;
       _velocity_y = 0.2;
     }

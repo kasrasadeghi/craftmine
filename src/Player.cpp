@@ -3,7 +3,7 @@
 #include "Physics.h"
 #include <iostream>
 
-void Player::handleTick(const World& world){
+void Player::handleTick(const World& world) {
   // if not on ground, tick gravity
   if (_current_mode == Mode::Survival) {
     if (not _grounded) {
@@ -18,7 +18,6 @@ void Player::handleTick(const World& world){
 
     // FIXME: cast ray to ground and then ground if reached by current velocity and then place player on ground
     if (_grounded) {
-      // FIXME: flooring does not get your block because the blocks are -0.5 -> int -> 0.5, not int -> int + 1
       auto wi = glm::round(feet());
       if (world(wi.x, wi.y, wi.z)) {
         camera.setPos({feet().x, wi.y + 2.25f, feet().z});
