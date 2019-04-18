@@ -21,6 +21,8 @@ int main() {
   window.setMousePos(window.width()/2.f, window.height()/2.f);
   window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+  glfwWindowHint(GLFW_SAMPLES, 4);
+
   Player player;
   player.setPos(glm::vec3(2000, 100, 2000));
 
@@ -177,9 +179,10 @@ int main() {
   };
   update_offs();
 
-  glm::vec4 light_position {0, 10, 0, 1};
+  glm::vec4 light_position {0, 1000, 0, 1};
 
   TextRenderer tr {(float)window.width(), (float)window.height()};
+
 
   while (window.isOpen()) {
     // glfwGetFramebufferSize(window, &window_width, &window_height);
@@ -194,6 +197,8 @@ int main() {
 		glCullFace(GL_BACK);
 
     glDisable(GL_BLEND);
+
+    glEnable(GL_MULTISAMPLE);
 
     if (player._current_mode != Player::Mode::Menger) {
       if (window.getKey(GLFW_KEY_W)) { player.move(2, world);; }

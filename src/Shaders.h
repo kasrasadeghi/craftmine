@@ -242,13 +242,13 @@ vec4 height_atten(vec4 color) {
   return mix(vec4(0, 0, 0, 0), color, 1 - w);
 }
 
-vec4 menger_color() {
-  vec4 color = abs(normal);
+vec4 menger_color(vec4 color) {
+  // vec4 color = abs(normal);
 
 	vec4 light_direction = normalize(world_position - light_position);
 	float dot_nl = dot(normalize(light_direction), normalize(normal));
 	dot_nl = clamp(dot_nl, 0.0, 1.0);
-	return clamp(dot_nl * color, 0.0, 1.0);
+	return mix(clamp(dot_nl * color, 0.0, 1.0), color, .7);
 }
 
 void main()
@@ -279,6 +279,7 @@ void main()
 	if (wireframe && is_frame) {
 		fragment_color = vec4(0, float(is_frame), 0, 1);
 	}
+  fragment_color = menger_color(fragment_color);
 }
 )zzz";
 

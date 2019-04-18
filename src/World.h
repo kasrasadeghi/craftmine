@@ -48,7 +48,7 @@ struct Chunk {
         || k >= CHUNK_SIZE) {
         return true;
       }
-
+      
       return data[i][j][k] == 0;
     };
 
@@ -115,10 +115,11 @@ struct World {
   }
 
   bool isAir(int i, int j, int k) const {
-    if (j < 0 || j >= CHUNK_HEIGHT) {
+    if (j >= 0 || j < CHUNK_HEIGHT) {
       if (hasChunk(toChunk(glm::ivec3(i, 0, k)))) {
         // loaded chunk
-        return operator()(i, j, k) == 0;
+        auto block = operator()(i, j, k);
+        return block == 0;
       } else {
         // unloaded chunk
         return true;
