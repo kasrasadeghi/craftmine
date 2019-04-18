@@ -161,6 +161,7 @@ public:
   }
 
   GLfloat renderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color) {
+    glEnable(GL_BLEND);
     // Activate corresponding render state
     glUseProgram(_shaderID);
     glUniform4f(_shader_color_loc, color.x, color.y, color.z, color.w);

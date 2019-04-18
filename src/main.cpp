@@ -82,7 +82,10 @@ int main() {
   
   for (int i = 0; i < world._width; ++i) {
     for (int k = 0; k < world._height; ++k) {
-      world(i, 50 + perlin(i / 50.f, k / 50.f) * 10, k) = 1;
+      int h = 50 + perlin(i / 50.f, k / 50.f) * 10;
+      world(i, h, k) = 1;
+      world(i, h-1, k) = 1;
+      world(i, h-2, k) = 1;
     }
   }
 
@@ -186,12 +189,12 @@ int main() {
     
     glm::vec3 l = player.camera.look();
     auto forward = glm::normalize(glm::vec3(l.x, 0, l.z)) * Camera::zoom_speed;
-    if (window.getKey(GLFW_KEY_W)) { player.camera.translate(forward); }
-    if (window.getKey(GLFW_KEY_S)) { player.camera.translate(-forward); }
-    if (window.getKey(GLFW_KEY_A)) { player.camera.strafe(-1); }
-    if (window.getKey(GLFW_KEY_D)) { player.camera.strafe(1); }
-    if (window.getKey(GLFW_KEY_UP)) { player.camera.translate(player.camera.up() * glm::vec3(0.2)); }
-    if (window.getKey(GLFW_KEY_DOWN)) { player.camera.translate(-player.camera.up() * glm::vec3(0.2)); }
+    if (window.getKey(GLFW_KEY_W)) { player.moveForward(); }
+    if (window.getKey(GLFW_KEY_S)) { player.moveBackward(); }
+    if (window.getKey(GLFW_KEY_A)) { player.moveRight(); }
+    if (window.getKey(GLFW_KEY_D)) { player.moveLeft(); }
+    if (window.getKey(GLFW_KEY_UP)) { player.jump(); }
+    if (window.getKey(GLFW_KEY_DOWN)) { player.down(); }
 
     glBindVertexArray(worldVAO);
 
@@ -215,7 +218,7 @@ int main() {
 
     // COLLISION TESTING
 
-    player.handleTick(world);
+    player.handleTick(world, tr);
 
     glUseProgram(program_id);
 
@@ -227,7 +230,12 @@ int main() {
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
 
-    glEnable(GL_BLEND);
+    auto blocks = player.collided(world);
+    tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
+    if (blocks.size() != 0) {
+      tr.renderText("collided: ", 100, 50, 1, glm::vec4(1));
+      tr.renderText(glm::to_string(blocks[0]), 100, 100, 1, glm::vec4(1));
+    }
 
     window.swapBuffers();
     glfwPollEvents();
