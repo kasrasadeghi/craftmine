@@ -99,6 +99,25 @@ int main() {
   std::vector<glm::uvec3> faces;
   faces.emplace_back(0, 1, 2);
 
+  glViewport(0, 0, window.width(), window.height());
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+  glEnable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glDepthFunc(GL_LESS);
+
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glEnable(GL_MULTISAMPLE);
+
+  TextRenderer tr {(float)window.width(), (float)window.height()};
+  tr.renderText("generating terrain", window.width()/2 - 100, window.height()/2, 1, glm::vec4(1));
+  window.swapBuffers();
+
   // create world with flat plane
   World world(player);
   TerrainGen::spawn(world, player);
@@ -178,8 +197,6 @@ int main() {
   update_offs();
 
   glm::vec4 light_position {0, 1000, 0, 1};
-
-  TextRenderer tr {(float)window.width(), (float)window.height()};
 
 
   while (window.isOpen()) {
