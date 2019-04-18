@@ -233,12 +233,9 @@ int main() {
     glm::mat4 view_matrix = player.camera.get_view_matrix();
 
 
-    // COLLISION TESTING
-
     player.handleTick(world);
     world.handleTick(player);
 
-    // if world is dirty
     if (world.dirty()) {
 
       for (const glm::ivec2& chunk_index : world._active_set) {
