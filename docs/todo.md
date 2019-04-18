@@ -6,11 +6,12 @@ negative world chunks
 class project:
 shadow mapping
 texture interpolation instead of color interpolation
-async terrain gen
+chunk load and unload from disk
+background terrain gen
 async instance gen
-chunk instance caching
 water transparency
 > DONE
+chunk instance caching
 octaves
 phong shading
 infinite terrain - make world load and unload chunks
