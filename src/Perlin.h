@@ -28,9 +28,9 @@ float perlin(float x, float y) {
   glm::vec2 pos {x, y};
 
   // FIXME: handle negative values
-  int x0 = (int)x;
+  int x0 = (x > 0.0? (int)x: (int)x - 1);
   int x1 = x0 + 1;
-  int y0 = (int)y;
+  int y0 = (y > 0.0? (int)y: (int)y - 1);
   int y1 = y0 + 1;
 
   // gradients

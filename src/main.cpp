@@ -212,7 +212,7 @@ int main() {
       for (int k = -1; k <= 1; ++k) {
         auto chunk_index = World::toChunk(player.blockPosition());
         glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
-        if (world._chunks.count(curr_index) != 0) {
+        if (not world.hasChunk(curr_index)) {
           TerrainGen::chunk(world, curr_index);
         }
       }
@@ -220,6 +220,7 @@ int main() {
       world.build(instances);
       glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
       glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
+      world._dirty = false;
     }
   
     float aspect = static_cast<float>(window.width()) / window.height();
@@ -247,6 +248,7 @@ int main() {
     if (player.collided(world)) {
       tr.renderText("collided", 100, 50, 1, glm::vec4(1));
     }
+    tr.renderText(glm::to_string(player.feet()), 200, 50, 1, glm::vec4(1));
 
     window.swapBuffers();
     glfwPollEvents();

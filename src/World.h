@@ -75,7 +75,7 @@ struct World {
   std::unordered_map<glm::ivec2, Chunk> _chunks;
   std::unordered_set<glm::ivec2> _active_set;
   glm::ivec2 _player_chunk_index;
-  bool _dirty = false;
+  bool _dirty = true;
 
   World(Player& player);
 

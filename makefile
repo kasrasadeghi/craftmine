@@ -13,3 +13,6 @@ test:
 
 gdb: build
 	gdb -q -ex run --args build/bin/minecraft
+
+clean:
+	rm -rf build

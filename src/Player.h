@@ -34,13 +34,13 @@ struct Player {
 
     switch(direction) {
     case 0:  // right
-      camera.strafe(-1); break;
+      camera.strafe(-2); break;
     case 1:  // left
-      camera.strafe(1); break;
+      camera.strafe(2); break;
     case 2:  // forward
-      camera.translate(forward()); break;
+      camera.translate(glm::vec3(2)*forward()); break;
     case 3:  // backward
-      camera.translate(-forward()); break;
+      camera.translate(-glm::vec3(2)*forward()); break;
     }
 
     if (collided(world)) {
