@@ -22,7 +22,7 @@ int main() {
   window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   Player player;
-  player.setPos(glm::vec3(100, 100, 100));
+  player.setPos(glm::vec3(2000, 100, 2000));
 
   bool wireframe_mode = false;
   window.setKeyCallback([&](int key, int scancode, int action, int mods) {
@@ -96,7 +96,7 @@ int main() {
 
   // create world with flat plane
   World world(player);
-  TerrainGen::spawn(world, player, 128, 128);
+  TerrainGen::spawn(world, player);
 
   std::vector<Instance> instances;
   world.build(instances);
@@ -208,9 +208,10 @@ int main() {
 
     // if world is dirty
     if (world.dirty()) {
-      for (int i = -1; i <= 1; ++i)
-      for (int k = -1; k <= 1; ++k) {
-        auto chunk_index = World::toChunk(player.blockPosition());
+      std::cout << "dirty" << std::endl;
+      auto chunk_index = World::toChunk(player.blockPosition());
+      for (int i = -GEN_DISTANCE; i <= GEN_DISTANCE; ++i)
+      for (int k = -GEN_DISTANCE; k <= GEN_DISTANCE; ++k) {
         glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
         if (not world.hasChunk(curr_index)) {
           TerrainGen::chunk(world, curr_index);
@@ -248,7 +249,10 @@ int main() {
     if (player.collided(world)) {
       tr.renderText("collided", 100, 50, 1, glm::vec4(1));
     }
-    tr.renderText(glm::to_string(player.feet()), 200, 50, 1, glm::vec4(1));
+    tr.renderText("player pos: " + glm::to_string(player.feet()), 200, 50, 1, glm::vec4(1));
+    tr.renderText("player pos: " + glm::to_string(player.blockPosition()), 200, 80, 1, glm::vec4(1));
+    tr.renderText("chunk pos:  " + glm::to_string(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
+    tr.renderText("chunk loaded? " + std::string(world.hasChunk(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 140, 1, glm::vec4(1));
 
     window.swapBuffers();
     glfwPollEvents();

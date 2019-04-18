@@ -13,6 +13,8 @@
 
 constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 128;
+constexpr int GEN_DISTANCE = 10;
+constexpr int RENDER_DISTANCE = 5;
 
 struct Instance {
   Instance(glm::vec3 p, GLuint d, GLuint ti):
@@ -26,7 +28,7 @@ struct Instance {
 
 using std::array;
 struct Chunk {
-
+  bool generated = false;
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
 
   void build(glm::ivec2 offset, std::vector<Instance>& instances) {
@@ -131,6 +133,6 @@ struct World {
   }
 
   bool hasChunk(glm::ivec2 chunk_index) const {
-    return _chunks.count(chunk_index) != 0;
+    return _chunks.count(chunk_index) != 0 || _chunks.at(chunk_index).generated;
   }
 };
