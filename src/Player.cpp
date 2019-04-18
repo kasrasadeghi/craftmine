@@ -3,23 +3,21 @@
 #include "Physics.h"
 
 void Player::handleTick(const World& world){
-  // generate impulse to jerk player if collided
-  // if movement resolves collision, no impulse
-  // otherwise impulse
-
   // if not on ground, tick gravity
   if (_current_mode == Mode::Survival) {
     if (not _grounded) {
       // tick gravity
       _velocity_y -= 0.5 * 1/60.f;
 
-      // FIXME: cast ray to ground and then ground if reached by current velocity and then place player on ground
 
       // apply vel_y
       camera.translate(glm::vec3(0, _velocity_y, 0));
     }
     _grounded = grounded(world);
+
+    // FIXME: cast ray to ground and then ground if reached by current velocity and then place player on ground
     if (_grounded) {
+      // FIXME: flooring does not get your block because the blocks are -0.5 -> int -> 0.5, not int -> int + 1
       auto wi = glm::floor(feet());
       if (world(wi.x, wi.y, wi.z)) {
         camera.setPos({feet().x, wi.y + 2.25f, feet().z});
@@ -27,7 +25,6 @@ void Player::handleTick(const World& world){
     }
   }
   // FIXME: maybe: if we're collided and grounded bump up
-
 }
 
 
