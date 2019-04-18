@@ -19,7 +19,7 @@ int main() {
   // RenderWindow window {"Hello World", 800, 600};
   RenderWindow window {"Hello World"};
   window.setMousePos(window.width()/2.f, window.height()/2.f);
-  // window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   Player player;
   player.setPos(glm::vec3(2000, 100, 2000));
