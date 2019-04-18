@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "GlmHashes.h"
+#include <glm/gtc/integer.hpp>
 
 #include <sys/types.h>
 #include <vector>
@@ -83,18 +84,24 @@ struct World {
   void handleTick(Player& player);
 
   u_char& operator()(int i, int j, int k) {
+    auto good_mod = [](int x, int y) { return (y + (x%y)) % y; };
+
     int ci = i / CHUNK_SIZE;
     int ck = k / CHUNK_SIZE;
-    int di = i % CHUNK_SIZE;
-    int dk = k % CHUNK_SIZE;
-    return _chunks.at(glm::ivec2{ci, ck}).data.at(di).at(j).at(dk);
+    int di = good_mod(i, CHUNK_SIZE);
+    int dk = good_mod(k, CHUNK_SIZE);
+    // sometimes default constructs
+    return _chunks[glm::ivec2{ci, ck}].data.at(di).at(j).at(dk);
   }
 
   u_char operator()(int i, int j, int k) const {
+    auto good_mod = [](int x, int y) { return (y + (x%y)) % y; };
+
     int ci = i / CHUNK_SIZE;
     int ck = k / CHUNK_SIZE;
-    int di = i % CHUNK_SIZE;
-    int dk = k % CHUNK_SIZE;
+    int di = good_mod(i, CHUNK_SIZE);
+    int dk = good_mod(k, CHUNK_SIZE);
+    // sometimes default constructs
     return _chunks.at(glm::ivec2{ci, ck}).data.at(di).at(j).at(dk);
   }
 

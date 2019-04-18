@@ -22,6 +22,7 @@ int main() {
   window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   Player player;
+  player.setPos(glm::vec3(100, 100, 100));
 
   bool wireframe_mode = false;
   window.setKeyCallback([&](int key, int scancode, int action, int mods) {
