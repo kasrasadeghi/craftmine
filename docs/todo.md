@@ -4,9 +4,10 @@ anti aliasing
 
 class project:
 shadow mapping
+texture interpolation instead of color interpolation
 negative world chunks
-make world load and unload chunks
 > DONE
+infinite terrain - make world load and unload chunks
 glsl perlin texture
 perlin noise
 cull non-air-neighbor faces
