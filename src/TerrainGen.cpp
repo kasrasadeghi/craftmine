@@ -9,6 +9,7 @@ void TerrainGen::spawn(World& world, Player& player) {
   for (int i = -3; i <= 3; ++i) {
     for (int k = -3; k <= 3; ++k) {
       glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
+      world._chunks[curr_index] = {};
       chunk(world, curr_index);
     }
   }
@@ -18,7 +19,6 @@ void TerrainGen::spawn(World& world, Player& player) {
 }
 
 void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
-  world._chunks[chunk_index] = {};
   assert (not world._chunks.at(chunk_index).generated);
 
   int bi = chunk_index.x * CHUNK_SIZE;

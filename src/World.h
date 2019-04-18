@@ -133,6 +133,10 @@ struct World {
   }
 
   bool hasChunk(glm::ivec2 chunk_index) const {
-    return _chunks.count(chunk_index) != 0 || _chunks.at(chunk_index).generated;
+    return _chunks.count(chunk_index) != 0;
+  }
+
+  bool isChunkLoaded(glm::ivec2 chunk_index) const {
+    return _chunks.at(chunk_index).generated;
   }
 };

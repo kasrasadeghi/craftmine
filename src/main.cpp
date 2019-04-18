@@ -19,7 +19,7 @@ int main() {
   // RenderWindow window {"Hello World", 800, 600};
   RenderWindow window {"Hello World"};
   window.setMousePos(window.width()/2.f, window.height()/2.f);
-  window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  // window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   Player player;
   player.setPos(glm::vec3(2000, 100, 2000));
@@ -205,24 +205,6 @@ int main() {
     }
     
     glBindVertexArray(worldVAO);
-
-    // if world is dirty
-    if (world.dirty()) {
-      std::cout << "dirty" << std::endl;
-      auto chunk_index = World::toChunk(player.blockPosition());
-      for (int i = -GEN_DISTANCE; i <= GEN_DISTANCE; ++i)
-      for (int k = -GEN_DISTANCE; k <= GEN_DISTANCE; ++k) {
-        glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
-        if (not world.hasChunk(curr_index)) {
-          TerrainGen::chunk(world, curr_index);
-        }
-      }
-
-      world.build(instances);
-      glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
-      world._dirty = false;
-    }
   
     float aspect = static_cast<float>(window.width()) / window.height();
 		glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.5f, 1000.0f);
@@ -234,6 +216,23 @@ int main() {
 
     player.handleTick(world);
     world.handleTick(player);
+
+    // if world is dirty
+    if (world.dirty()) {
+      for (const glm::ivec2& chunk_index : world._active_set) {
+        if (not world.hasChunk(chunk_index)) {
+          world._chunks[chunk_index] = {};
+        }
+        if (not world.isChunkLoaded(chunk_index)) {
+          TerrainGen::chunk(world, chunk_index);
+        }
+      }
+
+      world.build(instances);
+      glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
+      world._dirty = false;
+    }
 
     glUseProgram(program_id);
 
