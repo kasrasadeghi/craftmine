@@ -115,6 +115,14 @@ public:
     return glfwGetKey(_window, key_code) == GLFW_PRESS;
   }
 
+  void setMousePos(double x, double y) {
+    glfwSetCursorPos(_window, x, y);
+  }
+
+  void setInputMode(int mode, int value) {
+    glfwSetInputMode(_window, mode, value);
+  }
+
   glm::vec2 mousePos() {
     // NOTE: this mouse position is "relative to the client area of the window"
     // according to glfw

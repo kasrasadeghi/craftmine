@@ -17,6 +17,8 @@
 int main() {
   // RenderWindow window {"Hello World", 800, 600};
   RenderWindow window {"Hello World"};
+  window.setMousePos(window.width()/2.f, window.height()/2.f);
+  window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   Player player;
 
@@ -32,6 +34,12 @@ int main() {
     }
 
     player.handleKey(key, scancode, action, mods);
+
+    if (player._current_mode == Player::Mode::Menger) {
+      window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    } else {
+      window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
   });
 
   struct MouseState_ {
@@ -49,21 +57,29 @@ int main() {
   });
 
   window.setCursorCallback([&](double mouse_x, double mouse_y) {
-    if (not mouse.pressed) {
-      return;
-    }
+    if (player._current_mode != Player::Mode::Menger) {
+      float dx = mouse_x - window.width()/2.f;
+      float dy = mouse_y - window.height()/2.f;
+      player.camera.yaw(-dx/20.f);
+      player.camera.pitch(-dy/20.f);
+      window.setMousePos(window.width()/2.f, window.height()/2.f);
+    } else {
+      if (not mouse.pressed) {
+        return;
+      }
 
-    if (mouse.current_button == GLFW_MOUSE_BUTTON_LEFT) {
-      glm::ivec2& prev = mouse.prev_pos;
-      if (prev == glm::ivec2{-1, -1}) {
-        prev = {mouse_x, mouse_y};
-      } else {
-        int dx = mouse_x - prev.x;
-        int dy = mouse_y - prev.y;
-        player.camera.yaw(dx);
-        player.camera.pitch(dy);
+      if (mouse.current_button == GLFW_MOUSE_BUTTON_LEFT) {
+        glm::ivec2& prev = mouse.prev_pos;
+        if (prev == glm::ivec2{-1, -1}) {
+          prev = {mouse_x, mouse_y};
+        } else {
+          int dx = mouse_x - prev.x;
+          int dy = mouse_y - prev.y;
+          player.camera.yaw(dx);
+          player.camera.pitch(dy);
 
-        prev = {mouse_x, mouse_y};
+          prev = {mouse_x, mouse_y};
+        }
       }
     }
   });
@@ -186,14 +202,15 @@ int main() {
 
     glDisable(GL_BLEND);
 
+    if (player._current_mode != Player::Mode::Menger) {
+      if (window.getKey(GLFW_KEY_W)) { player.move(2, world);; }
+      if (window.getKey(GLFW_KEY_S)) { player.move(3, world); }
+      if (window.getKey(GLFW_KEY_A)) { player.move(0, world); }
+      if (window.getKey(GLFW_KEY_D)) { player.move(1, world); }
+      if (window.getKey(GLFW_KEY_UP)) { player.jump(); }
+      if (window.getKey(GLFW_KEY_DOWN)) { player.moveDown(); }
+    }
     
-    if (window.getKey(GLFW_KEY_W)) { player.move(2, world);; }
-    if (window.getKey(GLFW_KEY_S)) { player.move(3, world); }
-    if (window.getKey(GLFW_KEY_A)) { player.move(0, world); }
-    if (window.getKey(GLFW_KEY_D)) { player.move(1, world); }
-    if (window.getKey(GLFW_KEY_UP)) { player.jump(); }
-    if (window.getKey(GLFW_KEY_DOWN)) { player.moveDown(); }
-
     glBindVertexArray(worldVAO);
 
     // if world is dirty

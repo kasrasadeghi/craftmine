@@ -5,10 +5,10 @@
 
 class Camera {
 public:
-	static constexpr float pan_speed = 0.5f;
+	static constexpr float pan_speed = 0.2f;
 	static constexpr float roll_speed = 0.1f;
 	static constexpr float rotation_speed = 0.02f;
-	static constexpr float zoom_speed = 0.1f;
+	static constexpr float zoom_speed = 0.2f;
 
 	glm::mat4 get_view_matrix() const;
 	const glm::vec3& eye() const;

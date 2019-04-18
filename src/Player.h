@@ -42,6 +42,7 @@ struct Player {
     }
     // FIXME: maybe: if we're collided and grounded bump up
     // FIXME: if the tiles below you don't collide with you, then you are ungrounded. redo collision
+    
   }
 
   void jump() {
@@ -122,6 +123,34 @@ struct Player {
     }
 
     // FIXME: menger flying
+    if (key == GLFW_KEY_F && action == GLFW_RELEASE && (mods & GLFW_MOD_CONTROL)) {
+      if (_current_mode == Mode::Menger) {
+        _current_mode = Mode::Survival;
+      } else {
+        _velocity_y = 0;
+        _current_mode = Mode::Menger;
+      }
+    }
+
+    if (_current_mode == Mode::Menger) {
+      if (key == GLFW_KEY_W && action != GLFW_RELEASE) {
+        camera.zoom(1);
+      } else if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
+        camera.zoom(-1);
+      } else if (key == GLFW_KEY_A && action != GLFW_RELEASE) {
+        camera.strafe(-1);
+      } else if (key == GLFW_KEY_D && action != GLFW_RELEASE) {
+        camera.strafe(1);
+      } else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
+        camera.roll(-1);
+      } else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
+        camera.roll(1);
+      } else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
+        camera.vertical(-1);
+      } else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
+        camera.vertical(1);
+      }
+    }
 
 
     if (key == GLFW_KEY_SPACE && _grounded && action == GLFW_PRESS) {
