@@ -30,26 +30,22 @@ using std::array;
 struct Chunk {
   bool generated = false;
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
+  std::vector<Instance> _instances;
 
-  void build(glm::ivec2 offset, std::vector<Instance>& instances) {
+  void build(glm::ivec2 offset, std::vector<Instance>& instances, std::function<bool(int,int,int)> isAir) {
+    if (not _instances.empty()) {
+      instances.reserve(instances.size() + _instances.size());
+      std::copy(_instances.begin(), _instances.end(), std::back_inserter(instances));
+      return;
+    }
+
     auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs, GLuint texture_index) {
-      if (airs[0]) instances.emplace_back(pos, 0, texture_index);
-      if (airs[1]) instances.emplace_back(pos, 1, texture_index);
-      if (airs[2]) instances.emplace_back(pos, 2, texture_index);
-      if (airs[3]) instances.emplace_back(pos, 3, texture_index);
-      if (airs[4]) instances.emplace_back(pos, 4, texture_index);
-      if (airs[5]) instances.emplace_back(pos, 5, texture_index);
-    };
-
-    auto isAir = [&](int i, int j, int k) {
-      if (i < 0 || j < 0 || k < 0 
-        || i >= CHUNK_SIZE 
-        || j >= CHUNK_HEIGHT
-        || k >= CHUNK_SIZE) {
-        return true;
+      for (int i = 0; i < 6; ++i) {
+        if (airs[i]) {
+          instances.emplace_back(pos, i, texture_index);
+          _instances.emplace_back(pos, i, texture_index);
+        }
       }
-
-      return data[i][j][k] == 0;
     };
 
     for (int i = 0; i < CHUNK_SIZE; ++i) {
@@ -57,12 +53,12 @@ struct Chunk {
     for (int k = 0; k < CHUNK_SIZE; ++k) {
       if (data[i][j][k] != 0) {
         std::array<bool, 6> airs = {
-          isAir(i+1, j, k),
-          isAir(i, j+1, k),
-          isAir(i, j, k+1),
-          isAir(i-1, j, k),
-          isAir(i, j-1, k),
-          isAir(i, j, k-1),
+          isAir(offset.x + i+1, j,   offset.y + k),
+          isAir(offset.x + i,   j+1, offset.y + k),
+          isAir(offset.x + i,   j,   offset.y + k+1),
+          isAir(offset.x + i-1, j,   offset.y + k),
+          isAir(offset.x + i,   j-1, offset.y + k),
+          isAir(offset.x + i,   j,   offset.y + k-1),
         };
 
         addCube({i + offset.x, j, k + offset.y}, airs, data[i][j][k]);
@@ -110,12 +106,12 @@ struct World {
   void build(std::vector<Instance>& instances) {
     instances.clear();
     for (const glm::ivec2& chunk_index : _active_set) {
-      _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances);
+      _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances, [&](int i, int j, int k){return isAir(i, j, k);});
     }
   }
 
   bool isAir(int i, int j, int k) const {
-    if (j >= 0 || j < CHUNK_HEIGHT) {
+    if (j >= 0 && j < CHUNK_HEIGHT) {
       if (hasChunk(toChunk(glm::ivec3(i, 0, k)))) {
         // loaded chunk
         auto block = operator()(i, j, k);
