@@ -13,6 +13,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtx/string_cast.hpp>
 
+#include <future>
+
 int main() {
   srand(time(NULL));
 
@@ -224,13 +226,24 @@ int main() {
 
     // if world is dirty
     if (world.dirty()) {
-      for (const glm::ivec2& chunk_index : world._active_set) {
+
+      auto get_chunk = [&](glm::ivec2 chunk_index) {
         if (not world.hasChunk(chunk_index)) {
           world._chunks[chunk_index] = {};
         }
         if (not world.isChunkGenerated(chunk_index)) {
           TerrainGen::chunk(world, chunk_index);
         }
+      };
+
+      std::vector<std::future<void>> handles;
+
+      for (const glm::ivec2& chunk_index : world._active_set) {
+        handles.emplace_back(std::async(std::launch::async, get_chunk, chunk_index));
+      }
+
+      for (auto &handle : handles) {
+          handle.get();
       }
 
       world.build(instances);
