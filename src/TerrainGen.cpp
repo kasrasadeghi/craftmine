@@ -3,6 +3,8 @@
 #include "Player.h"
 #include "Perlin.h"
 
+// FIXME: is every chunk actually only loaded once?
+
 void TerrainGen::spawn(World& world, Player& player) {
   auto chunk_index = World::toChunk(player.blockPosition());
 
@@ -26,12 +28,8 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
   // FIXME: is everything in this function actually in the same chunk?
 
-
   for (int i = 0; i < CHUNK_SIZE; ++i)
   for (int k = 0; k < CHUNK_SIZE; ++k) {
-    // int h = 50 + perlin(player_pos.x + i / 50.f, player_pos.z + k / 50.f) * 10;
-    // glm::ivec3 p = glm::ivec3(player_pos.x + i, h, player_pos.z + k);
-
     int h = 50 + perlin((bi + i) / 50.f, (bk + k) / 50.f) * 10;
     world(bi + i, h,   bk + k) = 1;
     world(bi + i, h-1, bk + k) = 1;

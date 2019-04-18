@@ -223,7 +223,7 @@ int main() {
         if (not world.hasChunk(chunk_index)) {
           world._chunks[chunk_index] = {};
         }
-        if (not world.isChunkLoaded(chunk_index)) {
+        if (not world.isChunkGenerated(chunk_index)) {
           TerrainGen::chunk(world, chunk_index);
         }
       }
