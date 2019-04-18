@@ -1,12 +1,18 @@
 misc:
 anti aliasing
+negative world chunks
 
 
 class project:
 shadow mapping
 texture interpolation instead of color interpolation
-negative world chunks
+async terrain gen
+async instance gen
+chunk instance caching
+water transparency
 > DONE
+octaves
+phong shading
 infinite terrain - make world load and unload chunks
 glsl perlin texture
 perlin noise
