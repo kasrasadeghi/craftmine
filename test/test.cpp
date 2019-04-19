@@ -1,58 +1,58 @@
 #include <gtest/gtest.h>
-#include "../src/Physics.h"
 #include "../src/World.h"
-#include "../src/Perlin.h"
+#include "../src/Player.h"
+#include "../src/TerrainGen.h"
 
 
-TEST(Physics, vertical_cases) {
-  float p0, p1, b, t;
+// TEST(Physics, vertical_cases) {
+//   float p0, p1, b, t;
 
-  auto test = [&]() -> bool {
-    return not(t < p0 || b > p1);
-  };
+//   auto test = [&]() -> bool {
+//     return not(t < p0 || b > p1);
+//   };
 
-  p0 = 1; p1 = 2; b = 3; t = 4;
-  ASSERT_FALSE(test());
+//   p0 = 1; p1 = 2; b = 3; t = 4;
+//   ASSERT_FALSE(test());
 
-  p0 = 1; b = 2; p1 = 3; t = 4;
-  ASSERT_TRUE(test());
+//   p0 = 1; b = 2; p1 = 3; t = 4;
+//   ASSERT_TRUE(test());
 
-  b = 1; p0 = 2; t = 3; p1 = 4;
-  ASSERT_TRUE(test());
+//   b = 1; p0 = 2; t = 3; p1 = 4;
+//   ASSERT_TRUE(test());
 
-  b = 1; t = 2; p0 = 3; p1 = 4;
-  ASSERT_FALSE(test());
+//   b = 1; t = 2; p0 = 3; p1 = 4;
+//   ASSERT_FALSE(test());
 
-  p0 = 1; b = 2; t = 3; p1 = 4;
-  ASSERT_TRUE(test());
-}
+//   p0 = 1; b = 2; t = 3; p1 = 4;
+//   ASSERT_TRUE(test());
+// }
 
-TEST(Physics, horizontal_logic) {
-  glm::ivec3 A {0, 0, 0};
-  glm::vec3 pole {0, 1.7, 0};
-  float radius = 0.5;
+// TEST(Physics, horizontal_logic) {
+//   glm::ivec3 A {0, 0, 0};
+//   glm::vec3 pole {0, 1.7, 0};
+//   float radius = 0.5;
 
-  ASSERT_TRUE(A.x + 0.5 > pole.x - radius);
-  ASSERT_TRUE(A.z + 0.5 > pole.z - radius);
-  ASSERT_TRUE(A.x - 0.5 < pole.x + radius);
-  ASSERT_TRUE(A.z - 0.5 < pole.z + radius);
-}
+//   ASSERT_TRUE(A.x + 0.5 > pole.x - radius);
+//   ASSERT_TRUE(A.z + 0.5 > pole.z - radius);
+//   ASSERT_TRUE(A.x - 0.5 < pole.x + radius);
+//   ASSERT_TRUE(A.z - 0.5 < pole.z + radius);
+// }
 
-TEST(Physics, horizontal_cases) {
-  ASSERT_TRUE(Physics::horizontalCollision({0, 0, 0}, {0, 0, 0}, 0.5));
-  ASSERT_TRUE(Physics::horizontalCollision({0, 0, 0}, {0.75, 0, 0}, 0.5));
-}
+// TEST(Physics, horizontal_cases) {
+//   ASSERT_TRUE(Physics::horizontalCollision({0, 0, 0}, {0, 0, 0}, 0.5));
+//   ASSERT_TRUE(Physics::horizontalCollision({0, 0, 0}, {0.75, 0, 0}, 0.5));
+// }
 
-TEST(Physics, box_collision) {
-  glm::ivec3 box {0, 0, 0};
-  glm::vec3 eye {0, 1.7, 0};
+// TEST(Physics, box_collision) {
+//   glm::ivec3 box {0, 0, 0};
+//   glm::vec3 eye {0, 1.7, 0};
 
-  bool vertical   = Physics::verticalCollision(box, eye.y - 1.75, eye.y);
-  bool horizontal = Physics::horizontalCollision(box, eye, 0.5);
+//   bool vertical   = Physics::verticalCollision(box, eye.y - 1.75, eye.y);
+//   bool horizontal = Physics::horizontalCollision(box, eye, 0.5);
 
-  ASSERT_TRUE(vertical);
-  ASSERT_TRUE(horizontal);
-}
+//   ASSERT_TRUE(vertical);
+//   ASSERT_TRUE(horizontal);
+// }
 
 // TEST(Physics, player_collision) {
 
@@ -89,30 +89,44 @@ TEST(Physics, box_collision) {
 //   ASSERT_TRUE(test());
 // }
 
-TEST(Physics, box_circle) {
-  using namespace Physics;
-  auto huh = lineBoxIntersection({0, 0}, {1, 0});
-  auto what = glm::vec2{0.5, 0};
-  ASSERT_EQ(huh, what);
+// TEST(Physics, box_circle) {
+//   using namespace Physics;
+//   auto huh = lineBoxIntersection({0, 0}, {1, 0});
+//   auto what = glm::vec2{0.5, 0};
+//   ASSERT_EQ(huh, what);
 
-  huh = lineBoxIntersection({0, 0}, {0, 0.1});
-  // std::cout << glm::to_string(huh) << std::endl;
+//   huh = lineBoxIntersection({0, 0}, {0, 0.1});
+//   // std::cout << glm::to_string(huh) << std::endl;
 
-  huh = lineBoxIntersection({0, 0}, {1, 0});
+//   huh = lineBoxIntersection({0, 0}, {1, 0});
 
-  huh = boxCircleOverlap({0, 0}, {0.6, 0}, 0.5);
-  std::cout << glm::to_string(huh) << std::endl;
+//   huh = boxCircleOverlap({0, 0}, {0.6, 0}, 0.5);
+//   std::cout << glm::to_string(huh) << std::endl;
 
-  huh = boxCircleOverlap({1, 1}, {1 + 0.5 * 1.8, 1 + 0.5 * 1.8}, 0.5);
-  std::cout << glm::to_string(huh) << std::endl;
+//   huh = boxCircleOverlap({1, 1}, {1 + 0.5 * 1.8, 1 + 0.5 * 1.8}, 0.5);
+//   std::cout << glm::to_string(huh) << std::endl;
+// }
+
+
+// TEST(Player, good_mod) {
+//   int x = -5;
+//   int y = 3;
+
+//   auto good_mod = [](int x, int y) { return (y + (x%y)) % x; };
+
+//   ASSERT_GT(good_mod(x, y), 0);
+// }
+
+Player player;
+World world(player);
+
+TEST(TerrainGen, spawn_time) {
+  glm::ivec2 chunk {0, 0};
+  world._chunks[chunk] = {};
+  TerrainGen::chunk(world, chunk);
 }
 
-
-TEST(Player, good_mod) {
-  int x = -5;
-  int y = 3;
-
-  auto good_mod = [](int x, int y) { return (y + (x%y)) % x; };
-
-  ASSERT_GT(good_mod(x, y), 0);
+TEST(World, build_time) {
+  std::vector<Instance> instances;
+  world.build(instances);
 }
