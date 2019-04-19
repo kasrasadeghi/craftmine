@@ -332,12 +332,15 @@ void main()
     float shadow_ratio = calculateShadow();
     vec4 shadow_color = mix(vec4(0, 0, 0, 1), fragment_color, 1 - shadow_ratio);
     fragment_color = mix(shadow_color, fragment_color, shadow_ratio > 0.5 ? 0.5 : 1);
-    return;
-  // } else {
-    // gl_FragDepth = gl_FragCoord.z;
-    // fragment_color = vec4(gl_FragCoord.zzz, 1);
-    // return;
-  }
+    float depth = gl_FragCoord.z;
+    
+    if (depth > 0.99) {
+      depth = clamp(depth * 100 - 99, 0, 1);
+      fragment_color = mix(vec4(0.2, 0.2, 0.2, 1), fragment_color, 1 - depth);
+    }
+  } else {
+    fragment_color = vec4(gl_FragCoord.zzz, 1);
+  }  
 
   if (wireframe) {
     bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
