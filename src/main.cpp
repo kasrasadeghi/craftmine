@@ -18,7 +18,7 @@
 
 #include <future>
 
-constexpr bool SHADOWS = false;
+constexpr bool SHADOWS = true;
 
 int main() {
   srand(time(NULL));
@@ -303,15 +303,18 @@ int main() {
       // Set rendering options
       glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
       glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-      glClear(GL_DEPTH_BUFFER_BIT);
+      // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
       
       // Compute uniforms
-      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 30, 0, 0), 0.2f * glm::sin((float)glfwGetTime()/5), glm::vec3(0, 0, 1));
+      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 30, 0, 0), 0.0f * glm::sin((float)glfwGetTime()/5), glm::vec3(0, 0, 1));
       light_position = glm::vec4(player.head() + glm::vec3(light_offset), 1);
 
       light_space_matrix = glm::mat4(0);
-      projection_matrix = glm::ortho(0.f, 1.f * SHADOW_WIDTH, 0.f, 1.f * SHADOW_HEIGHT, 0.5f, 1000.0f);
-      view_matrix = glm::lookAt(glm::vec3(light_position), player.head(), glm::vec3(0, 1, 0));
+      // projection_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.f, 7.5f);
+  		projection_matrix = glm::perspective(glm::radians(110.0f), aspect, 5.f, 1000.0f);
+      view_matrix = glm::lookAt(glm::vec3(light_position), player.head(), glm::vec3(1, 0, 0));
+      // view_matrix = player.camera.get_view_matrix();
       
       // Pass uniforms in.
       glUniformMatrix4fv(uniform.projection, 1, GL_FALSE, &projection_matrix[0][0]);

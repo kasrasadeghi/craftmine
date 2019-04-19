@@ -299,9 +299,14 @@ void main()
 
   if (light_space_position.w != 0) {
     if (calculateShadow() > 0.5) {
+      fragment_color = mix(vec4(0, 0, 0, 1), fragment_color, 0.5);
       fragment_color = vec4(0, 0, 0, 1);
       return;
     }
+  // } else {
+    // gl_FragDepth = gl_FragCoord.z;
+    // fragment_color = vec4(gl_FragCoord.zzz, 1);
+    // return;
   }
 
   vec2 i = world_position.xz;
