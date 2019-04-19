@@ -6,13 +6,11 @@ find_package(GTest REQUIRED)
 enable_testing()
 
 # add current directory to sources
-SET(current_dir ${CMAKE_CURRENT_LIST_DIR})
-aux_source_directory(${current_dir} src)
+aux_source_directory(${CMAKE_SOURCE_DIR}/src src)
 
 # remove main and replace with test suite
-list(REMOVE_ITEM src "src/main.cpp")
-list(APPEND "test/test.cpp")
-message(status ${src})
+list(REMOVE_ITEM src "${CMAKE_SOURCE_DIR}/src/main.cpp")
+list(APPEND src "${CMAKE_SOURCE_DIR}/test/test.cpp")
 
 # add library src_directories to sources
 foreach(x IN LISTS lib_source_dirs)
