@@ -294,7 +294,7 @@ int main() {
     glUseProgram(program_id);
     glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
-    glClearColor(0.2, 0.2, 0.2, 1);
+    glClearColor(0.5, 0.5, 0.5, 1); // Sky color
     glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 

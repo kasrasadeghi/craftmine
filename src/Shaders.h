@@ -336,7 +336,7 @@ void main()
     
     if (depth > 0.99) {
       depth = clamp(depth * 100 - 99, 0, 1);
-      fragment_color = mix(vec4(0.2, 0.2, 0.2, 1), fragment_color, 1 - depth);
+      fragment_color = mix(vec4(0.5, 0.5, 0.5, 1), fragment_color, 1 - depth);
     }
   } else {
     fragment_color = vec4(gl_FragCoord.zzz, 1);
