@@ -56,11 +56,15 @@ float perlin(float x, float y) {
   float p01 = glm::dot(g01, d01);
   float p10 = glm::dot(g10, d10);
   float p11 = glm::dot(g11, d11);
+  
+  auto fade = [](float t){
+    return (6 * t * t * t * t * t) - (15 * t * t * t * t) + (10 * t * t * t);
+  };
 
   // heights and interpolation
-  float h0_ = glm::mix(p00, p10, d00.x);
-  float h1_ = glm::mix(p01, p11, d00.x);
-  float h__ = glm::mix(h0_, h1_, d00.y);
+  float h0_ = glm::mix(p00, p10, fade(d00.x));
+  float h1_ = glm::mix(p01, p11, fade(d00.x));
+  float h__ = glm::mix(h0_, h1_, fade(d00.y));
 
   return h__;
 }
