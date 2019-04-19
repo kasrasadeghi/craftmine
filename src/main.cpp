@@ -23,8 +23,8 @@ constexpr bool SHADOWS = true;
 int main() {
   srand(time(NULL));
 
-  RenderWindow window {"Hello World", 1920, 1080};
-  // RenderWindow window {"Hello World"};
+  // RenderWindow window {"Hello World", 1920, 1080};
+  RenderWindow window {"Hello World"};
   window.setMousePos(window.width()/2.f, window.height()/2.f);
   window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -220,8 +220,8 @@ int main() {
   };
 
   // Setup framebuffer for depth
-  const unsigned int SHADOW_WIDTH = 1024;
-  const unsigned int SHADOW_HEIGHT = 1024;
+  const unsigned int SHADOW_WIDTH = 2048;
+  const unsigned int SHADOW_HEIGHT = 2048;
 
   GLuint depthFBO;
   glGenFramebuffers(1, &depthFBO);
@@ -235,8 +235,8 @@ int main() {
   // settings of texture
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   
   // bind shadow framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
@@ -307,12 +307,12 @@ int main() {
       glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
       
       // Compute uniforms
-      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 30, 0, 0), 0.0f * glm::sin((float)glfwGetTime()/5), glm::vec3(0, 0, 1));
+      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 50, 0, 0), 0.5f * glm::sin((float)glfwGetTime()/5), glm::vec3(0, 0, 1));
       light_position = glm::vec4(player.head() + glm::vec3(light_offset), 1);
 
       light_space_matrix = glm::mat4(0);
-      // projection_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.f, 7.5f);
-  		projection_matrix = glm::perspective(glm::radians(110.0f), aspect, 5.f, 1000.0f);
+      projection_matrix = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 5.f, 200.0f);
+  		// projection_matrix = glm::perspective(glm::radians(120.0f), aspect, 5.f, 1000.0f);
       view_matrix = glm::lookAt(glm::vec3(light_position), player.head(), glm::vec3(1, 0, 0));
       // view_matrix = player.camera.get_view_matrix();
       

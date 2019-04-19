@@ -159,13 +159,29 @@ float calculateShadow() {
 
   // [-1, 1] -> [0, 1]
   proj_pos = proj_pos * 0.5 + 0.5;
-  
+         
   float closest_to_light_d = texture(shadowMap, proj_pos.xy).r;
+
   float closest_to_camera_d = proj_pos.z;
 
   vec4 light_dir = normalize(world_position - light_position);
-  float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);  
-  return closest_to_camera_d - bias > closest_to_light_d ? 1.0 : 0.0;
+  float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
+
+  float shadow = 0.0;
+  vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+  for(int x = -1; x <= 1; ++x) {
+    for(int y = -1; y <= 1; ++y) {
+      float pcf_d = texture(shadowMap, proj_pos.xy + vec2(x, y) * texelSize).r; 
+      shadow += closest_to_camera_d - bias > pcf_d ? 1.0 : 0.0;        
+    }
+  }
+  shadow /= 9.0;
+  
+  // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+  if(proj_pos.z > 1.0)
+    shadow = 0.0;
+
+  return shadow;
 }
 
 
@@ -297,18 +313,6 @@ void main()
 
   // fragment_color = mix(vec4(0, 0, 0, 1), vec4(0, 1, 0, 1), perlin(world_position.x, world_position.y));
 
-  if (light_space_position.w != 0) {
-    if (calculateShadow() > 0.5) {
-      fragment_color = mix(vec4(0, 0, 0, 1), fragment_color, 0.5);
-      fragment_color = vec4(0, 0, 0, 1);
-      return;
-    }
-  // } else {
-    // gl_FragDepth = gl_FragCoord.z;
-    // fragment_color = vec4(gl_FragCoord.zzz, 1);
-    // return;
-  }
-
   vec2 i = world_position.xz;
 
   float k = 8;
@@ -322,6 +326,18 @@ void main()
   // if (sq_texture_index == WATER) fragment_color.w = 0.5; //FIXME: water should be see-through
   if (sq_texture_index == WATER) fragment_color.w = 1;
   else fragment_color.w = 1;
+
+  if (light_space_position.w != 0) {
+
+    float shadow_ratio = calculateShadow();
+    vec4 shadow_color = mix(vec4(0, 0, 0, 1), fragment_color, 1 - shadow_ratio);
+    fragment_color = mix(shadow_color, fragment_color, shadow_ratio > 0.5 ? 0.5 : 1);
+    return;
+  // } else {
+    // gl_FragDepth = gl_FragCoord.z;
+    // fragment_color = vec4(gl_FragCoord.zzz, 1);
+    // return;
+  }
 
   if (wireframe) {
     bool is_frame = min(bary_coord.x, min(bary_coord.y, bary_coord.z)) * perimeter < 0.05;
