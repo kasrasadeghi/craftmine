@@ -6,10 +6,11 @@
 #include "GlmHashes.h"
 #include <glm/gtc/integer.hpp>
 
-#include <sys/types.h>
+#include <sys/types.h> // FIXME: remove and just use GL___ types
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <future>
 
 constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 128;
@@ -74,6 +75,7 @@ struct World {
   std::unordered_set<glm::ivec2> _active_set;
   glm::ivec2 _player_chunk_index;
   bool _dirty = true;
+  std::unordered_map<glm::ivec2, std::future<void>> _chunk_gen_requests;
 
   World(Player& player);
 
@@ -106,8 +108,27 @@ struct World {
   void build(std::vector<Instance>& instances) {
     instances.clear();
     for (const glm::ivec2& chunk_index : _active_set) {
+      if (_chunk_gen_requests.count(chunk_index) != 0) {
+        // pop the future out if it is ready
+        if (std::future_status::ready == _chunk_gen_requests[chunk_index].wait_for(std::chrono::seconds(0))) {
+          _chunk_gen_requests.erase(chunk_index);
+        } else {
+          continue;
+        }
+      }
       _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances, [&](int i, int j, int k){return isAir(i, j, k);});
     }
+  }
+
+  bool isChunkBeingGenerated(glm::ivec2 chunk_index) {
+    return _chunk_gen_requests.count(chunk_index) != 0 
+        && std::future_status::ready == _chunk_gen_requests[chunk_index].wait_for(std::chrono::seconds(0));
+  }
+
+  void addChunkGenRequest(glm::ivec2 chunk_index, std::future<void> gen_req) {
+    assert(not isChunkBeingGenerated(chunk_index));
+    auto p = std::pair<glm::ivec2, std::future<void>>(chunk_index, gen_req);
+    _chunk_gen_requests.insert(p);
   }
 
   bool isAir(int i, int j, int k) const {
