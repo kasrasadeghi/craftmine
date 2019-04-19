@@ -13,6 +13,7 @@ texture interpolation instead of color interpolation
 water transparency
 good shadow mapping
 > DONE
+functional shadow mapping
 shadow mapping
 use local isAir when possible in chunk instance building
 chunk instance caching
