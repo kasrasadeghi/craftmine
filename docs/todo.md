@@ -2,16 +2,16 @@ misc:
 anti aliasing
 negative world chunks
 16^3 chunks instead of 16^2 x 128 chunks?
+chunk load and unload from disk
+background terrain gen
+async instance gen
+make transparency cache for chunk instance building?
 
 
 class project:
 shadow mapping
 texture interpolation instead of color interpolation
-chunk load and unload from disk
-background terrain gen
-async instance gen
 water transparency
-make transparency cache for chunk instance building
 > DONE
 use local isAir when possible in chunk instance building
 chunk instance caching
