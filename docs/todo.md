@@ -10,6 +10,7 @@ chunk load and unload from disk
 background terrain gen
 async instance gen
 water transparency
+make transparency cache for chunk instance building
 use local isAir when possible in chunk instance building
 > DONE
 chunk instance caching
