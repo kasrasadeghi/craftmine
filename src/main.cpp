@@ -240,8 +240,8 @@ int main() {
         if (not world.hasChunk(chunk_index)) {
           world._chunks[chunk_index] = {};
         }
-        if (not world.isChunkGenerated(chunk_index) && not world.isChunkBeingGenerated(chunk_index)) {
-          world.addChunkGenRequest(chunk_index, std::async([&world, chunk_index]() -> void { TerrainGen::chunk(world, chunk_index); }));
+        if (not world.isChunkGenerated(chunk_index)) {
+         TerrainGen::chunk(world, chunk_index);
         }
       }
 
