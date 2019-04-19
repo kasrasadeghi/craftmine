@@ -15,7 +15,7 @@
 constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 128;
 constexpr int GEN_DISTANCE = 10;
-constexpr int RENDER_DISTANCE = 5;
+constexpr int RENDER_DISTANCE = 3;
 
 struct Instance {
   Instance(glm::vec3 p, GLuint d, GLuint ti):
@@ -33,7 +33,7 @@ struct Chunk {
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
   std::vector<Instance> _instances;
 
-  void build(glm::ivec2 offset, std::vector<Instance>& instances, std::function<bool(int,int,int)> isAir) {
+  void build(glm::ivec2 offset, std::vector<Instance>& instances, std::function<bool(int,int,int)> worldIsAir) {
     if (not _instances.empty()) {
       instances.reserve(instances.size() + _instances.size());
       std::copy(_instances.begin(), _instances.end(), std::back_inserter(instances));
@@ -49,17 +49,24 @@ struct Chunk {
       }
     };
 
+    auto isAir = [&](int i, int j, int k) -> bool {
+      if (i > 15 || j > 15 || k > 15 || i < 0 || j < 0 || k < 0) {
+        return worldIsAir(offset.x + i, j, offset.y + k);
+      }
+      return data[i][j][k] == 0;
+    };
+
     for (int i = 0; i < CHUNK_SIZE; ++i) {
     for (int j = 0; j < CHUNK_HEIGHT; ++j) {
     for (int k = 0; k < CHUNK_SIZE; ++k) {
       if (data[i][j][k] != 0) {
         std::array<bool, 6> airs = {
-          isAir(offset.x + i+1, j,   offset.y + k),
-          isAir(offset.x + i,   j+1, offset.y + k),
-          isAir(offset.x + i,   j,   offset.y + k+1),
-          isAir(offset.x + i-1, j,   offset.y + k),
-          isAir(offset.x + i,   j-1, offset.y + k),
-          isAir(offset.x + i,   j,   offset.y + k-1),
+          isAir(i+1, j,   k),
+          isAir(i,   j+1, k),
+          isAir(i,   j,   k+1),
+          isAir(i-1, j,   k),
+          isAir(i,   j-1, k),
+          isAir(i,   j,   k-1),
         };
 
         addCube({i + offset.x, j, k + offset.y}, airs, data[i][j][k]);
