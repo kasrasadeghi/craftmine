@@ -12,6 +12,7 @@ make shadow texture size depend on render distance
 mipmap shadows
 
 class project:
+day night cycle
 texture interpolation instead of color interpolation
 water transparency
 > DONE
