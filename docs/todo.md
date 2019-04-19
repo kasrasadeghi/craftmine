@@ -5,15 +5,18 @@ negative world chunks
 chunk load and unload from disk
 background terrain gen
 async instance gen
+only instance gen for chunks that have neighbors
 make transparency cache for chunk instance building?
-
+make orthographic matrix depend on render distance
+make shadow texture size depend on render distance
+mipmap shadows
 
 class project:
 texture interpolation instead of color interpolation
 water transparency
+> DONE
 good shadow mapping
 slightly blurred shadow mapping
-> DONE
 functional shadow mapping
 shadow mapping
 use local isAir when possible in chunk instance building
