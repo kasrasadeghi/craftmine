@@ -170,7 +170,7 @@ float calculateShadow() {
 
 
 float rand(vec2 co){
-  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
 }
 
 float blerp (float i00, float i10, float i01, float i11, float u, float v) {
@@ -297,9 +297,11 @@ void main()
 
   // fragment_color = mix(vec4(0, 0, 0, 1), vec4(0, 1, 0, 1), perlin(world_position.x, world_position.y));
 
-  if (calculateShadow() > 0.5) {
-    fragment_color = vec4(0, 0, 0, 1);
-    return;
+  if (light_space_position.w != 0) {
+    if (calculateShadow() > 0.5) {
+      fragment_color = vec4(0, 0, 0, 1);
+      return;
+    }
   }
 
   vec2 i = world_position.xz;

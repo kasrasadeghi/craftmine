@@ -18,6 +18,8 @@
 
 #include <future>
 
+constexpr bool SHADOWS = false;
+
 int main() {
   srand(time(NULL));
 
@@ -284,9 +286,9 @@ int main() {
     }
 
     float aspect = static_cast<float>(window.width()) / window.height();
-    glm::mat4 projection_matrix;
-    glm::mat4 view_matrix;
-    glm::mat4 light_space_matrix;
+    glm::mat4 projection_matrix(0);
+    glm::mat4 view_matrix(0);
+    glm::mat4 light_space_matrix(0);
 
     /// Draw scene
     glUseProgram(program_id);
@@ -296,30 +298,30 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-    /// Render to Shadow Texture
-    // Set rendering options
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    
-    // Compute uniforms
-    glm::vec4 light_offset = glm::rotate(glm::vec4(0, 30, 0, 0), 0.2f * glm::sin((float)glfwGetTime()/5), glm::vec3(0, 0, 1));
-    light_position = glm::vec4(player.head() + glm::vec3(light_offset), 1);
+    if (SHADOWS) {
+      /// Render to Shadow Texture
+      // Set rendering options
+      glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+      glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+      glClear(GL_DEPTH_BUFFER_BIT);
+      
+      // Compute uniforms
+      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 30, 0, 0), 0.2f * glm::sin((float)glfwGetTime()/5), glm::vec3(0, 0, 1));
+      light_position = glm::vec4(player.head() + glm::vec3(light_offset), 1);
 
+      light_space_matrix = glm::mat4(0);
+      projection_matrix = glm::ortho(0.f, 1.f * SHADOW_WIDTH, 0.f, 1.f * SHADOW_HEIGHT, 0.5f, 1000.0f);
+      view_matrix = glm::lookAt(glm::vec3(light_position), player.head(), glm::vec3(0, 1, 0));
+      
+      // Pass uniforms in.
+      glUniformMatrix4fv(uniform.projection, 1, GL_FALSE, &projection_matrix[0][0]);
+      glUniformMatrix4fv(uniform.view,       1, GL_FALSE, &view_matrix[0][0]);
+      glUniformMatrix4fv(uniform.light_space,1, GL_FALSE, &light_space_matrix[0][0]);
+      glUniform4fv(      uniform.light_pos,  1, &light_position[0]);
+      glUniform1i(       uniform.wireframe,  wireframe_mode);
 
-    light_space_matrix = glm::mat4(0);
-    projection_matrix = glm::ortho(0.f, 1.f * SHADOW_WIDTH, 0.f, 1.f * SHADOW_HEIGHT, 0.5f, 1000.0f);
-    view_matrix = glm::lookAt(glm::vec3(light_position), player.head(), glm::vec3(0, 1, 0));
-    
-		// Pass uniforms in.
-		glUniformMatrix4fv(uniform.projection, 1, GL_FALSE, &projection_matrix[0][0]);
-		glUniformMatrix4fv(uniform.view,       1, GL_FALSE, &view_matrix[0][0]);
-		glUniformMatrix4fv(uniform.light_space,1, GL_FALSE, &light_space_matrix[0][0]);
-		glUniform4fv(      uniform.light_pos,  1, &light_position[0]);
-    glUniform1i(       uniform.wireframe,  wireframe_mode);
-
-    glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
-  
+      glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
+    }
 
     /// Render to Screen
     // Set rendering options
@@ -329,7 +331,7 @@ int main() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Compute uniforms  
+    // Compute uniforms
     light_space_matrix = projection_matrix * view_matrix;
 		projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.5f, 1000.0f);
     view_matrix = player.camera.get_view_matrix();
