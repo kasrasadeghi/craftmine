@@ -12,8 +12,8 @@ background terrain gen
 async instance gen
 water transparency
 make transparency cache for chunk instance building
-use local isAir when possible in chunk instance building
 > DONE
+use local isAir when possible in chunk instance building
 chunk instance caching
 octaves
 phong shading
