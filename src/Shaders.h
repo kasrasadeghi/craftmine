@@ -14,8 +14,11 @@ layout (location = 1) in vec3 instance_offset;
 layout (location = 2) in uint direction;
 layout (location = 3) in uint texture_index;
 
+uniform mat4 light_space;
+
 out uint vs_direction;
 out uint vs_texture_index;
+out vec4 vs_light_space_position;
 
 void main()
 {
@@ -41,8 +44,8 @@ void main()
   }
   vs_direction = direction;
   vs_texture_index = texture_index;
-
 	gl_Position = vec4(instance_offset, 0) + vec4(pos, 1);
+  vs_light_space_position = light_space * gl_Position;
 }
 )zzz";
 
@@ -60,6 +63,7 @@ uniform mat4 view;
 // input from vertex shader
 in uint vs_direction[];
 in uint vs_texture_index[];
+in vec4 vs_light_space_position[];
 
 // pass along from vertex shader
 flat out uint sq_direction;
@@ -67,10 +71,12 @@ flat out uint sq_texture_index;
 
 // output to fragment shader
 flat out vec4 normal;
-out vec4 world_position;
 out vec4 bary_coord;
 flat out float perimeter;
 out vec2 tex_coord;
+
+out vec4 world_position;
+out vec4 light_space_position;
 
 void main()
 {
@@ -89,24 +95,28 @@ void main()
 	perimeter = length(A - B) + length(B - C) + length(C - A);
 	
   world_position = vec4(A, 1);
+  light_space_position = vs_light_space_position[0];
   gl_Position = projection * view * world_position;
   bary_coord = vec4(1, 0, 0, 0);
   tex_coord = vec2(0, 0);
   EmitVertex();
 
   world_position = vec4(D, 1);
+  light_space_position = vs_light_space_position[0] + (vs_light_space_position[2] - vs_light_space_position[1]);
   gl_Position = projection * view * world_position;
   bary_coord = vec4(0, 0, 0, 1);
   tex_coord = vec2(0, 1);
   EmitVertex();
 
   world_position = vec4(B, 1);
+  light_space_position = vs_light_space_position[1];
   gl_Position = projection * view * world_position;
   bary_coord = vec4(0, 1, 0, 0);
   tex_coord = vec2(1, 0);
   EmitVertex();
 
   world_position = vec4(C, 1);
+  light_space_position = vs_light_space_position[2];
   gl_Position = projection * view * world_position;
   bary_coord = vec4(0, 0, 1, 0);
   tex_coord = vec2(1, 1);
@@ -126,18 +136,38 @@ uniform vec4 light_position;
 uniform vec4 base_colors[10];
 uniform vec4 off_colors[10];
 
+uniform sampler2D shadowMap;
+
 // input from vertex shader passed through geometry shader
 flat in uint sq_direction;
 flat in uint sq_texture_index;
 
 flat in vec4 normal;
-in vec4 world_position;
 in vec4 bary_coord;
 flat in float perimeter;
 in vec2 tex_coord;
 flat in vec3 flag_color;
 
+in vec4 world_position;
+in vec4 light_space_position;
+
 out vec4 fragment_color;
+
+float calculateShadow() {
+  // divide by homogeneous component
+  vec3 proj_pos = light_space_position.xyz / light_space_position.w;
+
+  // [-1, 1] -> [0, 1]
+  proj_pos = proj_pos * 0.5 + 0.5;
+  
+  float closest_to_light_d = texture(shadowMap, proj_pos.xy).r;
+  float closest_to_camera_d = proj_pos.z;
+
+  vec4 light_dir = normalize(world_position - light_position);
+  float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);  
+  return closest_to_camera_d - bias > closest_to_light_d ? 1.0 : 0.0;
+}
+
 
 float rand(vec2 co){
   return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -266,6 +296,11 @@ void main()
   // fragment_color = mix(fragment_color, vec4(noise, noise, noise, 1), 0.5);
 
   // fragment_color = mix(vec4(0, 0, 0, 1), vec4(0, 1, 0, 1), perlin(world_position.x, world_position.y));
+
+  if (calculateShadow() > 0.5) {
+    fragment_color = vec4(0, 0, 0, 1);
+    return;
+  }
 
   vec2 i = world_position.xz;
 

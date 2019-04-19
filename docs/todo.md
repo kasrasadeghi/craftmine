@@ -9,10 +9,11 @@ make transparency cache for chunk instance building?
 
 
 class project:
-shadow mapping
 texture interpolation instead of color interpolation
 water transparency
+good shadow mapping
 > DONE
+shadow mapping
 use local isAir when possible in chunk instance building
 chunk instance caching
 octaves

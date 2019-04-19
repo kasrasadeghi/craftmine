@@ -40,8 +40,11 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
   for (int i = 0; i < CHUNK_SIZE; ++i)
   for (int k = 0; k < CHUNK_SIZE; ++k) {
-    int h = 50 + perlin((bi + i) / 50.f, (bk + k) / 50.f) * 30;
+    int h = 50;
+    h += 10 * perlin((bi + i) / 64.f, (bk + k) / 64.f);
+    h += 20 * perlin((bi + i) / 32.f, (bk + k) / 32.f);
     h = glm::clamp(h, 0, 127);
+
 
     for (int j = 0; j < 80; ++j) {
       world(bi + i, j, bk + k) = octave(j, j <= h);

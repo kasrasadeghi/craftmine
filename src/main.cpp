@@ -14,14 +14,15 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include <future>
 
 int main() {
   srand(time(NULL));
 
-  // RenderWindow window {"Hello World", 800, 600};
-  RenderWindow window {"Hello World"};
+  RenderWindow window {"Hello World", 1920, 1080};
+  // RenderWindow window {"Hello World"};
   window.setMousePos(window.width()/2.f, window.height()/2.f);
   window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -29,6 +30,7 @@ int main() {
 
   Player player;
   player.setPos(glm::vec3(2000, 100, 2000));
+  World world(player);
 
   bool wireframe_mode = false;
   window.setKeyCallback([&](int key, int scancode, int action, int mods) {
@@ -61,6 +63,14 @@ int main() {
     mouse.current_button = button;
     if (action == GLFW_RELEASE) {
       mouse.prev_pos = {-1, -1};
+    }
+
+    if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT && 
+        player._current_mode == Player::Mode::Creative) {
+      glm::ivec3 block = World::toBlock(player.head() + glm::vec3(7) * player.camera.look());
+      world(block.x, block.y, block.z) = 1;
+      world._chunks[World::toChunk(block)]._instances.clear();
+      world._dirty = true;
     }
   });
 
@@ -120,7 +130,6 @@ int main() {
   window.swapBuffers();
 
   // create world with flat plane
-  World world(player);
   TerrainGen::spawn(world, player);
 
   std::vector<Instance> instances;
@@ -170,17 +179,19 @@ int main() {
 		GLint projection = 0;
 		GLint view = 0;
 		GLint light_pos = 0;
+    GLint light_space = 0;
     GLint wireframe = 0;
     GLint bases = 0;
     GLint offs = 0;
 	} uniform;
 
-  uniform.projection = glGetUniformLocation(program_id, "projection");
-	uniform.view       = glGetUniformLocation(program_id, "view");
-	uniform.light_pos  = glGetUniformLocation(program_id, "light_position");
-  uniform.wireframe  = glGetUniformLocation(program_id, "wireframe");
-  uniform.bases      = glGetUniformLocation(program_id, "base_colors");
-  uniform.offs       = glGetUniformLocation(program_id, "off_colors");
+  uniform.projection   = glGetUniformLocation(program_id, "projection");
+	uniform.view         = glGetUniformLocation(program_id, "view");
+	uniform.light_space  = glGetUniformLocation(program_id, "light_space");
+	uniform.light_pos    = glGetUniformLocation(program_id, "light_position");
+  uniform.wireframe    = glGetUniformLocation(program_id, "wireframe");
+  uniform.bases        = glGetUniformLocation(program_id, "base_colors");
+  uniform.offs         = glGetUniformLocation(program_id, "off_colors");
 
   std::vector<glm::vec4> base_colors (10, glm::vec4(0, 0, 0, 1));
   std::vector<glm::vec4> off_colors  (10, glm::vec4(0, 0, 0, 1));
@@ -206,23 +217,35 @@ int main() {
     return i.str();
   };
 
+  // Setup framebuffer for depth
+  const unsigned int SHADOW_WIDTH = 1024;
+  const unsigned int SHADOW_HEIGHT = 1024;
+
+  GLuint depthFBO;
+  glGenFramebuffers(1, &depthFBO);
+
+  // setup depth texture
+  GLuint depthMapTex;
+  glGenTextures(1, &depthMapTex); 
+  glBindTexture(GL_TEXTURE_2D, depthMapTex);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
+      SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  // settings of texture
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  
+  // bind shadow framebuffer
+  glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTex, 0);
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);  
+
+  
   while (window.isOpen()) {
     // glfwGetFramebufferSize(window, &window_width, &window_height);
-		glViewport(0, 0, window.width(), window.height());
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-		glEnable(GL_DEPTH_TEST);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glDepthFunc(GL_LESS);
-
-    glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glEnable(GL_MULTISAMPLE);
-
     if (player._current_mode != Player::Mode::Menger) {
       if (window.getKey(GLFW_KEY_W)) { player.move(2, world);; }
       if (window.getKey(GLFW_KEY_S)) { player.move(3, world); }
@@ -233,11 +256,6 @@ int main() {
     }
     
     glBindVertexArray(worldVAO);
-  
-    float aspect = static_cast<float>(window.width()) / window.height();
-		glm::mat4 projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.5f, 1000.0f);
-
-    glm::mat4 view_matrix = player.camera.get_view_matrix();
 
     player.handleTick(world);
     world.handleTick(player); // updates world._active set
@@ -252,29 +270,10 @@ int main() {
           world._chunks[chunk_index] = {};
         }
         if (not world.isChunkGenerated(chunk_index)) {
-         TerrainGen::chunk(world, chunk_index);
+          TerrainGen::chunk(world, chunk_index);
         }
       }
 
-      // FIXME: simultaneous terrain gen is unstable
-      // auto get_chunk = [&](glm::ivec2 chunk_index) {
-        // if (not world.hasChunk(chunk_index)) {
-        //   world._chunks[chunk_index] = {};
-        // }
-        // if (not world.isChunkGenerated(chunk_index)) {
-        //   TerrainGen::chunk(world, chunk_index);
-        // }
-      // };
-
-      // std::vector<std::future<void>> handles;
-
-      // for (const glm::ivec2& chunk_index : world._active_set) {
-      //   handles.emplace_back(std::async(std::launch::async, get_chunk, chunk_index));
-      // }
-
-      // for (auto &handle : handles) {
-      //   handle.get();
-      // }
       build_messages.emplace_back("generate chunk: " + str(glfwGetTime() - start));
 
       world.build(instances);
@@ -284,16 +283,69 @@ int main() {
       build_messages.emplace_back("build world:   " + str(glfwGetTime() - start));
     }
 
-    glUseProgram(program_id);
+    float aspect = static_cast<float>(window.width()) / window.height();
+    glm::mat4 projection_matrix;
+    glm::mat4 view_matrix;
+    glm::mat4 light_space_matrix;
 
+    /// Draw scene
+    glUseProgram(program_id);
+    glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
+
+    /// Render to Shadow Texture
+    // Set rendering options
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    
+    // Compute uniforms
+    glm::vec4 light_offset = glm::rotate(glm::vec4(0, 30, 0, 0), 0.2f * glm::sin((float)glfwGetTime()/5), glm::vec3(0, 0, 1));
+    light_position = glm::vec4(player.head() + glm::vec3(light_offset), 1);
+
+
+    light_space_matrix = glm::mat4(0);
+    projection_matrix = glm::ortho(0.f, 1.f * SHADOW_WIDTH, 0.f, 1.f * SHADOW_HEIGHT, 0.5f, 1000.0f);
+    view_matrix = glm::lookAt(glm::vec3(light_position), player.head(), glm::vec3(0, 1, 0));
+    
 		// Pass uniforms in.
 		glUniformMatrix4fv(uniform.projection, 1, GL_FALSE, &projection_matrix[0][0]);
 		glUniformMatrix4fv(uniform.view,       1, GL_FALSE, &view_matrix[0][0]);
+		glUniformMatrix4fv(uniform.light_space,1, GL_FALSE, &light_space_matrix[0][0]);
 		glUniform4fv(      uniform.light_pos,  1, &light_position[0]);
     glUniform1i(       uniform.wireframe,  wireframe_mode);
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
+  
 
+    /// Render to Screen
+    // Set rendering options
+    glViewport(0, 0, window.width(), window.height());
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Compute uniforms  
+    light_space_matrix = projection_matrix * view_matrix;
+		projection_matrix = glm::perspective(glm::radians(45.0f), aspect, 0.5f, 1000.0f);
+    view_matrix = player.camera.get_view_matrix();
+
+    // Pass uniforms in.
+		glUniformMatrix4fv(uniform.projection, 1, GL_FALSE, &projection_matrix[0][0]);
+		glUniformMatrix4fv(uniform.view,       1, GL_FALSE, &view_matrix[0][0]);
+		glUniformMatrix4fv(uniform.light_space,1, GL_FALSE, &light_space_matrix[0][0]);
+		glUniform4fv(      uniform.light_pos,  1, &light_position[0]);
+    glUniform1i(       uniform.wireframe,  wireframe_mode);
+
+    glBindTexture(GL_TEXTURE_2D, depthMapTex);
+    glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
+    
+
+    /// Render Text
     tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
     tr.renderText((player.collided(world) ? "" : "not ") + std::string("collided"), 100, 230, 1, glm::vec4(1));
     tr.renderText("player pos:   " + glm::to_string(player.feet()), 200, 50, 1, glm::vec4(1));
