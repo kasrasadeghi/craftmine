@@ -327,9 +327,36 @@ void main()
 }
 )zzz";
 
+// const char* keyframe_frag = 
+// R"zzz(
+// #version 330 core
+
+// in vec2 tex_uv;
+// uniform sampler2D current_texture;
+
+// out vec4 fragment_color;
+
+// void main() {
+// 	fragment_color = texture(current_texture, tex_uv);
+// })zzz";
+
+// const char* keyframe_vert =
+// R"zzz(#version 330 core
+// in vec2 vertex_position;
+// in vec2 tex_coords;
+
+// out vec2 tex_uv;
+
+// void main() {
+// 	gl_Position = vec4(vertex_position, -1, 1);
+// 	tex_uv = tex_coords;
+// }
+// )zzz";
 
 void
-CreateProgram(GLuint& program_id) {
+CreateProgram(GLuint& program_id
+// , GLuint& keyframe_id
+) {
 
 	auto createShader = [](const char* source, GLenum shaderType, std::string name = "") -> GLuint {
 		GLuint shader_id = 0;
@@ -354,6 +381,9 @@ CreateProgram(GLuint& program_id) {
 	GLuint geometry_shader_id       = createShader(geometry_shader, GL_GEOMETRY_SHADER, "geometry");
 	GLuint fragment_shader_id       = createShader(fragment_shader, GL_FRAGMENT_SHADER, "fragment");
 
+	// GLuint keyframe_frag_id         = createShader(keyframe_frag, GL_FRAGMENT_SHADER, "keyframe fragment");
+	// GLuint keyframe_vert_id         = createShader(keyframe_vert, GL_VERTEX_SHADER, "keyframe vertex");
+
 	// @output program_id
 	program_id = glCreateProgram();
 	glAttachShader(program_id, vertex_shader_id);
@@ -375,4 +405,22 @@ CreateProgram(GLuint& program_id) {
     glGetShaderInfoLog(program_id, 1024, NULL, infoLog);
     std::cout << infoLog << std::endl;
   }
+
+  // // @output keyframe_id
+	// keyframe_id = glCreateProgram();
+	// glAttachShader(keyframe_id, keyframe_vert_id);
+	// glAttachShader(keyframe_id, keyframe_frag_id);
+
+	// // Bind attributes.
+	// glBindAttribLocation(keyframe_id, 0, "vertex_position");
+  // glBindAttribLocation(keyframe_id, 1, "tex_coords");
+	// glBindFragDataLocation(keyframe_id, 0, "fragment_color");
+	// glLinkProgram(keyframe_id);
+
+  // glGetProgramiv(program_id, GL_LINK_STATUS, &success);
+  // if (not success) {
+  //   GLchar infoLog[1024];
+  //   glGetShaderInfoLog(program_id, 1024, NULL, infoLog);
+  //   std::cout << infoLog << std::endl;
+  // }
 }

@@ -18,13 +18,13 @@
 
 #include <future>
 
-constexpr bool SHADOWS = false;
+constexpr bool SHADOWS = true;
 
 int main() {
   srand(time(NULL));
 
-  RenderWindow window {"Hello World", 1920, 1080};
-  // RenderWindow window {"Hello World"};
+  // RenderWindow window {"Hello World", 1920, 1080};
+  RenderWindow window {"Hello World"};
   window.setMousePos(window.width()/2.f, window.height()/2.f);
   window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -137,7 +137,7 @@ int main() {
   std::vector<Instance> instances;
   world.build(instances);
 
-  GLuint worldVAO;
+  GLuint worldVAO = 0;
   struct VBO_ {
     GLuint vertex_buffer;
     GLuint instances_buffer;
@@ -172,10 +172,45 @@ int main() {
     glVertexAttribIPointer(   3, 1, GL_UNSIGNED_INT, sizeof(Instance), (void*)(sizeof(glm::vec3) + sizeof(GLuint)));
     glVertexAttribDivisor(    3, 1);
 
-  GLuint program_id = 0;
-	CreateProgram(program_id);
-  glUseProgram(program_id);
+  // GLuint keyframeVAO = 0;
+  // struct keyframeVBO_ {
+  //   GLuint vertex_buffer;
+  //   GLuint index_buffer;
+  // } keyframeVBO;
 
+  // const std::vector<glm::vec4> keyframe_quad_data = {
+	// 	{-1.f, -1.f,    0.f, 0.f},
+	// 	{-1.f,  1.f,    0.f, 1.f},
+	// 	{ 1.f,  1.f,    1.f, 1.f},
+	// 	{ 1.f, -1.f,    1.f, 0.f},
+	// };
+
+	// const std::vector<glm::uvec3> keyframe_quad_indices = {
+	// 	{0, 3, 1},
+	// 	{1, 3, 2},
+	// };
+
+  // glGenVertexArrays(1, &keyframeVAO);
+	// glBindVertexArray(keyframeVAO);
+	// glGenBuffers(2, (GLuint*)(&keyframeVBO));
+
+  // // Setup element array buffer.
+	// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, keyframeVBO.index_buffer);
+  // 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::uvec3) * keyframe_quad_indices.size(), keyframe_quad_indices.data(), GL_STATIC_DRAW);
+
+	// glBindBuffer(GL_ARRAY_BUFFER, keyframeVBO.vertex_buffer);
+  //   glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+  //   glEnableVertexAttribArray(0);
+  //   glVertexAttribPointer(    0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void*)0);
+
+  //   glEnableVertexAttribArray(1);
+  //   glVertexAttribPointer(    1, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void*)sizeof(glm::vec2));
+  
+  GLuint program_id = 0;
+  // GLuint keyframe_id = 0;
+	CreateProgram(program_id
+  // , keyframe_id
+  );
 
   struct {
 		GLint projection = 0;
@@ -364,6 +399,11 @@ int main() {
     for (auto&& message : build_messages) {
       tr.renderText(message, 1600, msgi += 30, 1, glm::vec4(1));
     }
+
+    // glViewport(window.width() - 100, window.height() - 100, 100, 100);
+    // glUseProgram(keyframe_id);
+    // glBindTexture(GL_TEXTURE_2D, depthMapTex);
+    // glDrawElements(GL_TRIANGLES, keyframe_quad_indices.size() * 3, GL_UNSIGNED_INT, 0);
 
     window.swapBuffers();
     glfwPollEvents();
