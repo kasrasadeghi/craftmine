@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 #include <GLFW/glfw3.h>
 #include <glm/gtx/string_cast.hpp>
@@ -198,6 +199,12 @@ int main() {
 
   glm::vec4 light_position {0, 1000, 0, 1};
 
+  std::vector<std::string> build_messages;
+  auto str = [](auto o) -> std::string {
+    std::stringstream i;
+    i << o; 
+    return i.str();
+  };
 
   while (window.isOpen()) {
     // glfwGetFramebufferSize(window, &window_width, &window_height);
@@ -236,6 +243,10 @@ int main() {
     world.handleTick(player); // updates world._active set
 
     if (world.dirty()) {
+      build_messages.clear();
+      double start = glfwGetTime();
+      build_messages.emplace_back("building active set of size " + str(world._active_set.size()));
+
       for (const glm::ivec2& chunk_index : world._active_set) {
         if (not world.hasChunk(chunk_index)) {
           world._chunks[chunk_index] = {};
@@ -264,11 +275,13 @@ int main() {
       // for (auto &handle : handles) {
       //   handle.get();
       // }
+      build_messages.emplace_back("generate chunk: " + str(glfwGetTime() - start));
 
       world.build(instances);
       glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
       glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
       world._dirty = false;
+      build_messages.emplace_back("build world:   " + str(glfwGetTime() - start));
     }
 
     glUseProgram(program_id);
@@ -291,6 +304,11 @@ int main() {
     for (int i = 0; i < 3; ++i) {
       auto p = player.blockPosition();
       tr.renderText((world(p.x, p.y - i, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
+    }
+    
+    float msgi = 100;
+    for (auto&& message : build_messages) {
+      tr.renderText(message, 1600, msgi += 30, 1, glm::vec4(1));
     }
 
     window.swapBuffers();
