@@ -1,6 +1,7 @@
 misc:
 anti aliasing
 negative world chunks
+16^3 chunks instead of 16^2 x 128 chunks?
 
 
 class project:
