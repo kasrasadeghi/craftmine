@@ -12,6 +12,7 @@ class project:
 texture interpolation instead of color interpolation
 water transparency
 good shadow mapping
+slightly blurred shadow mapping
 > DONE
 functional shadow mapping
 shadow mapping
