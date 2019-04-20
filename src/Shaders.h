@@ -165,7 +165,8 @@ float calculateShadow() {
   float closest_to_camera_d = proj_pos.z;
 
   vec4 light_dir = normalize(world_position - light_position);
-  float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
+  // float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
+  float bias = 0.003;
 
   float shadow = 0.0;
   vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
@@ -323,7 +324,7 @@ void main()
   fragment_color = height_atten(fragment_color);
 	
   fragment_color = menger_color(fragment_color);
-  // if (sq_texture_index == WATER) fragment_color.w = 0.5; //FIXME: water should be see-through
+  // if (sq_texture_index == WATER) fragment_color.w = 0.3; //FIXME: water should be see-through
   if (sq_texture_index == WATER) fragment_color.w = 1;
   else fragment_color.w = 1;
 
@@ -334,10 +335,8 @@ void main()
     fragment_color = mix(shadow_color, fragment_color, shadow_ratio > 0.5 ? 0.5 : 1);
     float depth = gl_FragCoord.z;
     
-    if (depth > 0.99) {
-      depth = clamp(depth * 100 - 99, 0, 1);
-      fragment_color = mix(vec4(0.5, 0.5, 0.5, 1), fragment_color, 1 - depth);
-    }
+    depth = clamp((depth - 0.99) * 100, 0, 1);
+    fragment_color = mix(vec4(0.5, 0.5, 0.5, 1), fragment_color, 1 - depth);
   } else {
     fragment_color = vec4(gl_FragCoord.zzz, 1);
   }  
