@@ -67,13 +67,7 @@ int main() {
       mouse.prev_pos = {-1, -1};
     }
 
-    if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_RIGHT && 
-        player._current_mode == Player::Mode::Creative) {
-      glm::ivec3 block = World::toBlock(player.head() + glm::vec3(7) * player.camera.look());
-      world(block.x, block.y, block.z) = 1;
-      world._chunks[World::toChunk(block)]._instances.clear();
-      world._dirty = true;
-    }
+    player.handleMouse(button, action, mods, world);
   });
 
   window.setCursorCallback([&](double mouse_x, double mouse_y) {

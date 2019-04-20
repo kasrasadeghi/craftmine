@@ -5,6 +5,7 @@
 struct World;
 
 struct Player {
+  unsigned char _held_block = 0;
   Camera camera;
   bool _grounded = false;
   float _velocity_y = 0;
@@ -12,6 +13,7 @@ struct Player {
   Mode _current_mode = Mode::Creative;
 
   void handleTick(const World& world);
+  void handleMouse(int button, int action, int mods, World& world);
 
   void jump() {
     if (_current_mode == Mode::Creative) {
@@ -34,13 +36,13 @@ struct Player {
 
     switch(direction) {
     case 0:  // right
-      camera.strafe(-2); break;
+      camera.strafe(-1); break;
     case 1:  // left
-      camera.strafe(2); break;
+      camera.strafe(1); break;
     case 2:  // forward
-      camera.translate(glm::vec3(2)*forward()); break;
+      camera.translate(glm::vec3(1)*forward()); break;
     case 3:  // backward
-      camera.translate(-glm::vec3(2)*forward()); break;
+      camera.translate(-glm::vec3(1)*forward()); break;
     }
 
     if (collided(world)) {
