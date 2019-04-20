@@ -12,12 +12,15 @@ make shadow texture size depend on render distance
 mipmap shadows
 make better fog
 texture interpolation instead of color interpolation
+make text renderer draw on near plane
+fix blocks placed on chunk boundary issues
+inventory
+day night cycle
 
 class project:
-day night cycle
 water transparency
-3d noise
 > DONE
+3d noise texture
 good shadow mapping
 slightly blurred shadow mapping
 functional shadow mapping
