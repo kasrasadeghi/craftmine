@@ -1,6 +1,7 @@
 #include "Camera.h"
 
 #include <GLFW/glfw3.h>
+#include <string>
 
 struct World;
 
@@ -19,6 +20,15 @@ struct Player {
     if (_current_mode == Mode::Creative) {
       camera.translate(camera.up() * glm::vec3(0.2));
     }
+  }
+
+  std::string modeString() {
+    switch(_current_mode) {
+    case Mode::Survival: return "Survival";
+    case Mode::Creative: return "Creative";
+    case Mode::Menger: return "Menger";
+    }
+    return "Unknown Mode";
   }
 
   void reset() {

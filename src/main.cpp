@@ -248,7 +248,7 @@ int main() {
       if (window.getKey(GLFW_KEY_A)) { player.move(0, world); }
       if (window.getKey(GLFW_KEY_D)) { player.move(1, world); }
       if (window.getKey(GLFW_KEY_UP) || window.getKey(GLFW_KEY_SPACE)) { player.jump(); }
-      if (window.getKey(GLFW_KEY_DOWN)) { player.moveDown(); }
+      if (window.getKey(GLFW_KEY_DOWN) || window.getKey(GLFW_KEY_LEFT_SHIFT)) { player.moveDown(); }
     }
     
     glBindVertexArray(worldVAO);
@@ -352,6 +352,9 @@ int main() {
     tr.renderText("chunk pos:    " + glm::to_string(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
     tr.renderText("chunk loaded? " + std::string(world.hasChunk(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 140, 1, glm::vec4(1));
     tr.renderText("chunk genned? " + std::string(world.isChunkGenerated(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 170, 1, glm::vec4(1));
+    tr.renderText("player block? " + Terrain::str(player._held_block), 100, window.height() - 100, 1, glm::vec4(1));
+    tr.renderText("player mode: " + player.modeString(), window.width() - 500, 100, 1, glm::vec4(1));
+    tr.renderText("+", window.width()/2, window.height()/2, 1, glm::vec4(1));
     for (int i = 0; i < 3; ++i) {
       auto p = player.blockPosition();
       tr.renderText((world(p.x, p.y - i, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
