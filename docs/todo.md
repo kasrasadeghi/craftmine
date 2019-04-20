@@ -10,13 +10,13 @@ make transparency cache for chunk instance building?
 make orthographic matrix depend on render distance
 make shadow texture size depend on render distance
 mipmap shadows
-make shadows
 make better fog
+texture interpolation instead of color interpolation
 
 class project:
 day night cycle
-texture interpolation instead of color interpolation
 water transparency
+3d noise
 > DONE
 good shadow mapping
 slightly blurred shadow mapping
