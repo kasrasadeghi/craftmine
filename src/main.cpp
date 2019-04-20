@@ -18,7 +18,7 @@
 
 #include <future>
 
-constexpr bool SHADOWS = true;
+constexpr bool SHADOWS = false;
 
 int main() {
   srand(time(NULL));
@@ -263,10 +263,16 @@ int main() {
 
       for (const glm::ivec2& chunk_index : world._active_set) {
         if (not world.hasChunk(chunk_index)) {
-          world._chunks[chunk_index] = {};
+          world._chunks[chunk_index];
         }
         if (not world.isChunkGenerated(chunk_index)) {
           TerrainGen::chunk(world, chunk_index);
+
+          std::async(std::launch::async, [&]{
+            world._chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, 
+              [&](int i, int j, int k) { return world.isAir(i, j, k); }
+            );
+          });
         }
       }
 

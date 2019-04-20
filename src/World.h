@@ -32,18 +32,13 @@ struct Chunk {
   bool generated = false;
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
   std::vector<Instance> _instances;
+  std::atomic<bool> _finished_generating {false};
 
-  void build(glm::ivec2 offset, std::vector<Instance>& instances, std::function<bool(int,int,int)> worldIsAir) {
-    if (not _instances.empty()) {
-      instances.reserve(instances.size() + _instances.size());
-      std::copy(_instances.begin(), _instances.end(), std::back_inserter(instances));
-      return;
-    }
-
+  void build(glm::ivec2 offset, std::function<bool(int,int,int)> worldIsAir) {
+    
     auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs, GLuint texture_index) {
       for (int i = 0; i < 6; ++i) {
         if (airs[i]) {
-          instances.emplace_back(pos, i, texture_index);
           _instances.emplace_back(pos, i, texture_index);
         }
       }
@@ -72,6 +67,14 @@ struct Chunk {
         addCube({i + offset.x, j, k + offset.y}, airs, data[i][j][k]);
       }
     }}}
+
+    _finished_generating = true;
+  }
+
+  void get(std::vector<Instance>& instances) {
+    assert (not _instances.empty());
+    instances.reserve(instances.size() + _instances.size());
+    std::copy(_instances.begin(), _instances.end(), std::back_inserter(instances));
   }
 };
 
@@ -114,7 +117,10 @@ struct World {
   void build(std::vector<Instance>& instances) {
     instances.clear();
     for (const glm::ivec2& chunk_index : _active_set) {
-      _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances, [&](int i, int j, int k){return isAir(i, j, k);});
+      auto& chunk = _chunks[chunk_index];
+      if (chunk._finished_generating && not chunk._instances.empty()) {
+        chunk.get(instances);
+      }
     }
   }
 

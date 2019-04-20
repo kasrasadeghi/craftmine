@@ -12,12 +12,15 @@ void TerrainGen::spawn(World& world, Player& player) {
   for (int i = -3; i <= 3; ++i) {
     for (int k = -3; k <= 3; ++k) {
       glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
-      world._chunks[curr_index] = {};
+      world._chunks[curr_index];
       chunk(world, curr_index);
     }
   }
   for (auto& p : world._chunks) {
     p.second.generated = true;
+    p.second.build({p.first.x*CHUNK_SIZE, p.first.y*CHUNK_SIZE}, 
+      [&](int i, int j, int k) { return world.isAir(i, j, k); }
+    );
   }
 }
 
