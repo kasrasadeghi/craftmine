@@ -10,6 +10,8 @@ make transparency cache for chunk instance building?
 make orthographic matrix depend on render distance
 make shadow texture size depend on render distance
 mipmap shadows
+make shadows
+make better fog
 
 class project:
 day night cycle
