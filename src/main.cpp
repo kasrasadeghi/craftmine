@@ -214,8 +214,8 @@ int main() {
   };
 
   // Setup framebuffer for depth
-  const unsigned int SHADOW_WIDTH = 15000;
-  const unsigned int SHADOW_HEIGHT = 15000;
+  const unsigned int SHADOW_WIDTH = 10000;
+  const unsigned int SHADOW_HEIGHT = 10000;
 
   GLuint depthFBO;
   glGenFramebuffers(1, &depthFBO);
@@ -239,7 +239,7 @@ int main() {
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);  
 
-  
+  double fps_counter_time = glfwGetTime();
   while (window.isOpen()) {
     // glfwGetFramebufferSize(window, &window_width, &window_height);
     if (player._current_mode != Player::Mode::Menger) {
@@ -355,6 +355,8 @@ int main() {
     tr.renderText("player block? " + Terrain::str(player._held_block), 100, window.height() - 100, 1, glm::vec4(1));
     tr.renderText("player mode: " + player.modeString(), window.width() - 500, 100, 1, glm::vec4(1));
     tr.renderText("+", window.width()/2, window.height()/2, 1, glm::vec4(1));
+    tr.renderText(str(1 / (glfwGetTime() - fps_counter_time)) + " FPS", window.width() - 200, 50, 1, glm::vec4(1));
+    fps_counter_time = glfwGetTime();
     for (int i = 0; i < 3; ++i) {
       auto p = player.blockPosition();
       tr.renderText((world(p.x, p.y - i, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
