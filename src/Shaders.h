@@ -187,7 +187,7 @@ float calculateShadow() {
 
 
 float rand(vec2 co){
-  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 49.5428);
 }
 
 float blerp (float i00, float i10, float i01, float i11, float u, float v) {
@@ -228,47 +228,76 @@ float ProceduralNoise(float u, float v) {
 float TWO_PI = 6.28318530717958647692528676655900576;
 #define WATER 3
 
-vec2 get_gradient(int i, int j) {
+vec3 get_gradient(int i, int j, int k) {
   float theta = rand(vec2(i, j));
-  return vec2(cos(theta), sin(theta));
+  float phi   = rand(vec2(i + j, k));
+  return vec3(cos(theta), sin(theta), tan(phi));
 }
 
-float perlin(float x, float y) {
+float perlin(float x, float y, float z) {
 
-  vec2 pos = vec2(x, y) + vec2(5);
+  vec3 pos = vec3(x, y, z) + vec3(5);
 
   int x0 = int(pos.x);
   int x1 = x0 + 1;
   int y0 = int(pos.y);
   int y1 = y0 + 1;
+  int z0 = int(pos.z);
+  int z1 = z0 + 1;
 
-  vec2 g00 = get_gradient(x0, y0);
-  vec2 g01 = get_gradient(x0, y1);
-  vec2 g10 = get_gradient(x1, y0);
-  vec2 g11 = get_gradient(x1, y1);
+  vec3 g000 = get_gradient(x0, y0, z0);
+  vec3 g010 = get_gradient(x0, y1, z0);
+  vec3 g100 = get_gradient(x1, y0, z0);
+  vec3 g110 = get_gradient(x1, y1, z0);
+
+  vec3 g001 = get_gradient(x0, y0, z1);
+  vec3 g011 = get_gradient(x0, y1, z1);
+  vec3 g101 = get_gradient(x1, y0, z1);
+  vec3 g111 = get_gradient(x1, y1, z1);
 
   // corners
-  vec2 c00 = vec2(x0, y0);
-  vec2 c10 = vec2(x1, y0);
-  vec2 c01 = vec2(x0, y1);
-  vec2 c11 = vec2(x1, y1);
+  vec3 c000 = vec3(x0, y0, z0);
+  vec3 c100 = vec3(x1, y0, z0);
+  vec3 c010 = vec3(x0, y1, z0);
+  vec3 c110 = vec3(x1, y1, z0);
+
+  vec3 c001 = vec3(x0, y0, z1);
+  vec3 c101 = vec3(x1, y0, z1);
+  vec3 c011 = vec3(x0, y1, z1);
+  vec3 c111 = vec3(x1, y1, z1);
 
   // distances
-  vec2 d00 = pos - c00;
-  vec2 d01 = pos - c01;
-  vec2 d10 = pos - c10;
-  vec2 d11 = pos - c11;
+  vec3 d000 = pos - c000;
+  vec3 d010 = pos - c010;
+  vec3 d100 = pos - c100;
+  vec3 d110 = pos - c110;
+
+  vec3 d001 = pos - c001;
+  vec3 d011 = pos - c011;
+  vec3 d101 = pos - c101;
+  vec3 d111 = pos - c111;
 
   // products
-  float p00 = dot(g00, d00);
-  float p01 = dot(g01, d01);
-  float p10 = dot(g10, d10);
-  float p11 = dot(g11, d11);
+  float p000 = dot(g000, d000);
+  float p010 = dot(g010, d010);
+  float p100 = dot(g100, d100);
+  float p110 = dot(g110, d110);
+
+  float p001 = dot(g001, d001);
+  float p011 = dot(g011, d011);
+  float p101 = dot(g101, d101);
+  float p111 = dot(g111, d111);
 
   // heights and interpolation
-  float h0_ = mix(p00, p10, d00.x);
-  float h1_ = mix(p01, p11, d00.x);
-  float h = mix(h0_, h1_, d00.y);
+  float h_00 = mix(p000, p100, d000.x);
+  float h_10 = mix(p010, p110, d000.x);
+  float h_0 = mix(h_00, h_10, d000.y);
+
+  float h_01 = mix(p001, p101, d000.x);
+  float h_11 = mix(p011, p111, d000.x);
+  float h_1 = mix(h_01, h_11, d000.y);
+
+  float h = mix(h_0, h_1, d000.z);
 
   return h;
 }
@@ -314,12 +343,12 @@ void main()
 
   // fragment_color = mix(vec4(0, 0, 0, 1), vec4(0, 1, 0, 1), perlin(world_position.x, world_position.y));
 
-  vec2 i = world_position.xz;
+  vec3 i = world_position.xyz;
 
   float k = 8;
-  i = vec2(floor(i * 8))/8;
+  i = vec3(floor(i * 8))/8;
 
-  float p = perlin(2 * i.x, 2 * i.y);
+  float p = perlin(2 * i.x, 2 * i.y, 2 * i.z);
   fragment_color = mix(base_colors[sq_texture_index], off_colors[sq_texture_index], p);
   fragment_color = height_atten(fragment_color);
 	
