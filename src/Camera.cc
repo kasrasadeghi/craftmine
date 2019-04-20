@@ -44,7 +44,7 @@ void Camera::strafe(float k) {
 }
 
 void Camera::vertical(float k) {
-	_eye += _up * k * pan_speed;
+	_eye += glm::cross(right(), _look) * k * pan_speed;
 }
 
 void Camera::roll(float k) {
