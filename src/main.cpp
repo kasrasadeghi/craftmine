@@ -220,8 +220,8 @@ int main() {
   };
 
   // Setup framebuffer for depth
-  const unsigned int SHADOW_WIDTH = 2048;
-  const unsigned int SHADOW_HEIGHT = 2048;
+  const unsigned int SHADOW_WIDTH = 15000;
+  const unsigned int SHADOW_HEIGHT = 15000;
 
   GLuint depthFBO;
   glGenFramebuffers(1, &depthFBO);
@@ -307,11 +307,11 @@ int main() {
       glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
       
       // Compute uniforms
-      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 50, 0, 0), 0.5f * glm::sin((float)glfwGetTime()/5), glm::vec3(0, 0, 1));
+      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 70, 0, 0), 0.5f * glm::sin((float)glfwGetTime()/5), glm::vec3(1, 0, 1));
       light_position = glm::vec4(player.head() + glm::vec3(light_offset), 1);
 
       light_space_matrix = glm::mat4(0);
-      projection_matrix = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 5.f, 200.0f);
+      projection_matrix = glm::ortho(-300.0f, 300.0f, -300.0f, 300.0f, 50.f, 150.0f);
   		// projection_matrix = glm::perspective(glm::radians(120.0f), aspect, 5.f, 1000.0f);
       view_matrix = glm::lookAt(glm::vec3(light_position), player.head(), glm::vec3(1, 0, 0));
       // view_matrix = player.camera.get_view_matrix();
