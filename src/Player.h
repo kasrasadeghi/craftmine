@@ -10,7 +10,7 @@ struct Player {
   Camera camera;
   bool _grounded = false;
   float _velocity_y = 0;
-  enum class Mode { Survival, Creative, Menger };
+  enum class Mode { Survival, Creative };
   Mode _current_mode = Mode::Creative;
 
   void handleTick(const World& world);
@@ -26,7 +26,6 @@ struct Player {
     switch(_current_mode) {
     case Mode::Survival: return "Survival";
     case Mode::Creative: return "Creative";
-    case Mode::Menger: return "Menger";
     }
     return "Unknown Mode";
   }
@@ -75,37 +74,6 @@ struct Player {
         _current_mode = Mode::Creative;
       }
     }
-
-    // menger flying
-    if (key == GLFW_KEY_F && action == GLFW_RELEASE && (mods & GLFW_MOD_CONTROL)) {
-      if (_current_mode == Mode::Menger) {
-        _current_mode = Mode::Survival;
-      } else {
-        _velocity_y = 0;
-        _current_mode = Mode::Menger;
-      }
-    }
-
-    if (_current_mode == Mode::Menger) {
-      if (key == GLFW_KEY_W && action != GLFW_RELEASE) {
-        camera.zoom(1);
-      } else if (key == GLFW_KEY_S && action != GLFW_RELEASE) {
-        camera.zoom(-1);
-      } else if (key == GLFW_KEY_A && action != GLFW_RELEASE) {
-        camera.strafe(-1);
-      } else if (key == GLFW_KEY_D && action != GLFW_RELEASE) {
-        camera.strafe(1);
-      } else if (key == GLFW_KEY_LEFT && action != GLFW_RELEASE) {
-        camera.roll(-1);
-      } else if (key == GLFW_KEY_RIGHT && action != GLFW_RELEASE) {
-        camera.roll(1);
-      } else if (key == GLFW_KEY_DOWN && action != GLFW_RELEASE) {
-        camera.vertical(-1);
-      } else if (key == GLFW_KEY_UP && action != GLFW_RELEASE) {
-        camera.vertical(1);
-      }
-    }
-
 
     if (key == GLFW_KEY_SPACE && _grounded && action == GLFW_PRESS && _current_mode == Mode::Survival) {
       _grounded = false;
