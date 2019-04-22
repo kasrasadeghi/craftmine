@@ -5,6 +5,7 @@
 #include "TerrainGen.h"
 #include "Player.h"
 #include "Shaders.h"
+#include "ShaderUtil.h"
 #include "World.h"
 #include "Terrain.h"
 
@@ -140,10 +141,13 @@ int main() {
     glVertexAttribIPointer(   3, 1, GL_UNSIGNED_INT, sizeof(Instance), (void*)(sizeof(glm::vec3) + sizeof(GLuint)));
     glVertexAttribDivisor(    3, 1);
 
-  GLuint program_id = 0;
-	CreateProgram(program_id);
-  glUseProgram(program_id);
+  ShaderSource program_sources;
+  program_sources.vertex = world_vertex_shader;
+  program_sources.geometry = world_geometry_shader;
+  program_sources.fragment = world_fragment_shader;
 
+	GLuint program_id = CreateProgram(program_sources, {"vertex_position", "instance_offset", "direction", "texture_index"});
+  glUseProgram(program_id);
 
   struct {
 		GLint projection = 0;

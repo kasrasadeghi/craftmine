@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-const char* vertex_shader =
+const char* world_vertex_shader =
 R"zzz(#version 410 core
 
 // input from render
@@ -49,7 +49,7 @@ void main()
 }
 )zzz";
 
-const char* geometry_shader =
+const char* world_geometry_shader =
 R"zzz(#version 410 core
 
 // layout description between vertex and fragment shader
@@ -127,7 +127,7 @@ void main()
 )zzz";
 
 // must use every input from geometry shader
-const char* fragment_shader =
+const char* world_fragment_shader =
 R"zzz(#version 410 core
 
 uniform bool wireframe; 
@@ -378,53 +378,3 @@ void main()
   }
 }
 )zzz";
-
-
-void
-CreateProgram(GLuint& program_id) {
-
-	auto createShader = [](const char* source, GLenum shaderType, std::string name = "") -> GLuint {
-		GLuint shader_id = 0;
-		const char* source_ptr = source;
-		shader_id = glCreateShader(shaderType);
-		glShaderSource(shader_id, 1, &source_ptr, nullptr);
-		glCompileShader(shader_id);
-		int status = 0;
-    glGetShaderiv(shader_id, GL_COMPILE_STATUS, &status);
-		if (not status) {
-			std::cout << "problem compiling shader: " << name << std::endl;
-      GLint success;
-      GLchar infoLog[1024];
-      glGetShaderInfoLog(shader_id, 1024, NULL, infoLog);
-      std::cout << infoLog << std::endl;
-		}
-
-		return shader_id;
-	};
-
-	GLuint vertex_shader_id         = createShader(vertex_shader, GL_VERTEX_SHADER, "vertex");
-	GLuint geometry_shader_id       = createShader(geometry_shader, GL_GEOMETRY_SHADER, "geometry");
-	GLuint fragment_shader_id       = createShader(fragment_shader, GL_FRAGMENT_SHADER, "fragment");
-
-	// @output program_id
-	program_id = glCreateProgram();
-	glAttachShader(program_id, vertex_shader_id);
-	glAttachShader(program_id, fragment_shader_id);
-	glAttachShader(program_id, geometry_shader_id);
-
-	// Bind attributes.
-	glBindAttribLocation(program_id, 0, "vertex_position");
-  glBindAttribLocation(program_id, 1, "instance_offset");
-  glBindAttribLocation(program_id, 2, "direction");
-  glBindAttribLocation(program_id, 3, "texture_index");
-	glBindFragDataLocation(program_id, 0, "fragment_color");
-	glLinkProgram(program_id);
-
-  GLint success;
-  glGetProgramiv(program_id, GL_LINK_STATUS, &success);
-  if (not success) {
-    GLchar infoLog[1024];
-    glGetShaderInfoLog(program_id, 1024, NULL, infoLog);
-    std::cout << infoLog << std::endl;
-  }
-}
