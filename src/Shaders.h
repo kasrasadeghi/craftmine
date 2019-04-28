@@ -126,6 +126,35 @@ void main()
 }
 )zzz";
 
+const char* g_pass_frag = 
+R"zzz(
+  layout (location = 0) out vec3 g_pos;
+  layout (location = 1) out vec3 g_norm;
+  layout (location = 2) out vec4 g_color_spec;
+
+  flat in uint sq_direction;
+  flat in uint sq_texture_index;
+
+  flat in vec4 normal;
+  in vec4 bary_coord;
+  flat in float perimeter;
+  in vec2 tex_coord;
+  flat in vec3 flag_color;
+
+  in vec4 world_position;
+  in vec4 light_space_position;
+
+
+  void main() {
+    g_pos = world_position;
+    g_norm = normal.xyz;
+    g_color_spec.rgb = vec3(.5f);
+    // specular component
+    g_color_spec.a = 0;
+  }
+
+)zzz" ;
+
 // must use every input from geometry shader
 const char* world_fragment_shader =
 R"zzz(#version 410 core
@@ -170,12 +199,30 @@ float calculateShadow() {
 
   float shadow = 0.0;
   vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-  for(int x = -1; x <= 1; ++x) {
-    for(int y = -1; y <= 1; ++y) {
-      float pcf_d = texture(shadowMap, proj_pos.xy + vec2(x, y) * texelSize).r; 
-      shadow += closest_to_camera_d - bias > pcf_d ? 1.0 : 0.0;        
-    }
-  }
+
+  vec2 tex_pos = proj_pos.xy * texelSize;
+  float shadowx1 = mix(
+  );
+
+  float shadowx2 =
+  float shadowy  = 
+
+  shadow = mix(
+    mix(
+      texture(shadowMap, vec2(floor(proj_pos.x), floor(proj_pos.y)) * texelSize).r <= closest_to_camera_d - bias ? 1.0 : 0.0,
+      texture(shadowMap, vec2(ceil(proj_pos.x), floor(proj_pos.y)) * texelSize).r <= closest_to_camera_d - bias ? 1.0 : 0.0, 
+      texelSize.x),
+    mix(
+      texture(shadowMap, vec2(floor(proj_pos.x), ceil(proj_pos.y)) * texelSize).r <= closest_to_camera_d - bias ? 1.0 : 0.0, 
+      texture(shadowMap, vec2(ceil(proj_pos.x), ceil(proj_pos.y)) * texelSize).r <= closest_to_camera_d - bias ? 1.0 : 0.0, 
+      texelSize.x),
+    texelSize.y);
+  // for(int x = -1; x <= 1; ++x) {
+  //   for(int y = -1; y <= 1; ++y) {
+  //     float pcf_d = texture(shadowMap, proj_pos.xy + vec2(x, y) * texelSize).r; 
+  //     shadow += closest_to_camera_d - bias > pcf_d  <= closest_to_camera_d - bias ? 1.0 : 0.0;        
+  //   }
+  // }
   shadow /= 9.0;
   
   // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.

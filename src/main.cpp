@@ -217,6 +217,40 @@ int main() {
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);  
 
+  // Differed pass
+  GLuint gFBO;
+  glGenFramebuffers(1, &gFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, gFBO);
+
+  // TEXTURES
+  GLuint g_pos, g_norm, g_color_spec;
+
+  // pos
+  glGenTextures(1, &g_pos);
+  glBindTexture(GL_TEXTURE_2D, g_pos);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F /* 16bit float percision */, window.width(), window.height(), 0, GL_RGB, GL_FLOAT, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_pos, 0);
+
+  // normal
+  glGenTextures(1, &g_norm);
+  glBindTexture(GL_TEXTURE_2D, g_norm); 
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F /* 16bit float percision */, window.width(), window.height(), 0, GL_RGB, GL_FLOAT, nullptr);                                               
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, g_norm, 0);
+
+  // color/albedo + spec
+  glGenTextures(1, &g_color_spec);
+  glBindTexture(GL_TEXTURE_2D, g_color_spec);                                                          
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, window.width(), window.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, g_color_spec, 0);
+
+  GLuint attachements[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+
   double fps_counter_time = glfwGetTime();
   while (window.isOpen()) {
     // glfwGetFramebufferSize(window, &window_width, &window_height);
@@ -294,6 +328,13 @@ int main() {
       glUniform1i(       uniform.wireframe,  wireframe_mode);
 
       glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
+
+
+      glBindFramebuffer(GL_FRAMEBUFFER, gFBO);
+      glDrawBuffers(3, attachements);
+      glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
     }
 
     /// Render to Screen
