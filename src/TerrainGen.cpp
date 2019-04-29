@@ -32,7 +32,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     if (h < 50 && v) { return STONE; }
     if (h < 55 && v) { return DIRT; }
     if (v)           { return GRASS; }
-    if (h < 45 && not v) { return WATER; }
+    if (h < 45 && not v) { return AIR; }
     return AIR;
   };
 
@@ -40,10 +40,14 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
   for (int i = 0; i < CHUNK_SIZE; ++i)
   for (int k = 0; k < CHUNK_SIZE; ++k) {
-    int h = 50;
-    h += 10 * perlin((bi + i) / 64.f, (bk + k) / 64.f);
-    h += 20 * perlin((bi + i) / 32.f, (bk + k) / 32.f);
-    h = glm::clamp(h, 0, 127);
+    int base_y = 30;
+    float delta_y = 0;
+    delta_y += 10 * perlin((bi + i) / 64.f, (bk + k) / 64.f);
+    delta_y += 20 * perlin((bi + i) / 32.f, (bk + k) / 32.f);
+
+    delta_y = glm::pow(delta_y, 1.15f);
+
+    int h = glm::clamp<int>(base_y + delta_y, 0, 127);
 
 
     for (int j = 0; j < 80; ++j) {
