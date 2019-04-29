@@ -60,13 +60,17 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     int h = glm::clamp<int>(base_y + delta_y, 0, 127);
 
     // solidity of block
-    int column[128] = {}; // all elements zero
+    bool column[128] = {}; // all elements zero
     for (int j = 0; j < 80; ++j) {
       column[j] = j <= h;
     }
 
     for (int j = 30; j < 100; ++j) {
-      if (not column[j]) column[j] = (128 - j)/128.f * perlin((bi + i) / 50.f, j / 32.f, (bk + k) / 50.f) * 4;
+      if (not column[j]) {
+        float p = 4 * perlin((bi + i) / 100.f, j / 50.f, (bk + k) / 100.f);
+        float k = (128 - j)/128.f;
+        column[j] = glm::floor(k * p);
+      }
     }
     
     int stretch = 0;
