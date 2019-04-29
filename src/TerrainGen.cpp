@@ -47,13 +47,17 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
   // FIXME: is everything in this function actually in the same chunk?
 
-  for (int i = 0; i < CHUNK_SIZE; ++i)
-  for (int k = 0; k < CHUNK_SIZE; ++k)
+  for (int di = 0; di < CHUNK_SIZE; ++di)
+  for (int dk = 0; dk < CHUNK_SIZE; ++dk)
   {
+    int i = bi + di;
+    int k = bk + dk;
+
+
     int base_y = 30;
     float delta_y = 0;
-    delta_y += 10 * perlin((bi + i) / 64.f, (bk + k) / 64.f);
-    delta_y += 20 * perlin((bi + i) / 32.f, (bk + k) / 32.f);
+    delta_y += 10 * perlin(i / 64.f, k / 64.f);
+    delta_y += 20 * perlin(i / 32.f, k / 32.f);
 
     delta_y = glm::pow(delta_y, 1.15f);
 
@@ -67,7 +71,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
     for (int j = 30; j < 100; ++j) {
       if (not column[j]) {
-        float p = 4 * perlin((bi + i) / 100.f, j / 50.f, (bk + k) / 100.f);
+        float p = 4 * perlin(i / 100.f, j / 50.f, k / 100.f);
         float k = (128 - j)/128.f;
         column[j] = glm::floor(k * p);
       }
@@ -78,7 +82,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     for (int j = 127; j >= 0; --j) {
       if (column[j]) {
         seen = true;
-        world(bi + i, j, bk + k) = stretch_octave(stretch);
+        world(i, j, k) = stretch_octave(stretch);
         stretch ++;
       } else if (seen) {
         stretch = 1;
