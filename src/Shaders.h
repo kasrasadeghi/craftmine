@@ -364,8 +364,8 @@ void main()
     fragment_color = mix(shadow_color, fragment_color, shadow_ratio > 0.5 ? 0.5 : 1);
     float depth = gl_FragCoord.z;
     
-    depth = clamp((depth - 0.99) * 100, 0, 1);
-    fragment_color = mix(vec4(0.5, 0.5, 0.5, 1), fragment_color, 1 - depth);
+    // depth = clamp((depth - 0.99) * 100, 0, 1);
+    // fragment_color = mix(vec4(0.5, 0.5, 0.5, 1), fragment_color, 1 - depth);
   } else {
     // fragment_color = vec4(gl_FragCoord.zzz, 1);
   }  

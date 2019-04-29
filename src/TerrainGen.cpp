@@ -4,6 +4,8 @@
 #include "Perlin.h"
 #include "Terrain.h"
 
+#include <iostream>
+
 // FIXME: is every chunk actually only loaded once?
 
 void TerrainGen::spawn(World& world, Player& player) {
@@ -27,7 +29,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
 
-  auto octave = [](int h, bool v){
+  auto octave = [](int h, bool v) {
     using namespace Terrain;
     if (h < 50 && v) { return STONE; }
     if (h < 55 && v) { return DIRT; }
@@ -36,10 +38,18 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     return AIR;
   };
 
+  auto stretch_octave = [](int s) {
+    using namespace Terrain;
+    if (s < 2) return GRASS;
+    if (s < 8) return DIRT;
+    return STONE;
+  };
+
   // FIXME: is everything in this function actually in the same chunk?
 
   for (int i = 0; i < CHUNK_SIZE; ++i)
-  for (int k = 0; k < CHUNK_SIZE; ++k) {
+  for (int k = 0; k < CHUNK_SIZE; ++k)
+  {
     int base_y = 30;
     float delta_y = 0;
     delta_y += 10 * perlin((bi + i) / 64.f, (bk + k) / 64.f);
@@ -49,10 +59,31 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
     int h = glm::clamp<int>(base_y + delta_y, 0, 127);
 
-
+    // solidity of block
+    int column[128] = {}; // all elements zero
     for (int j = 0; j < 80; ++j) {
-      world(bi + i, j, bk + k) = octave(j, j <= h);
+      column[j] = j <= h;
     }
+
+    for (int j = 30; j < 100; ++j) {
+      if (not column[j]) column[j] = (128 - j)/128.f * perlin((bi + i) / 50.f, j / 32.f, (bk + k) / 50.f) * 4;
+    }
+    
+    int stretch = 0;
+    bool seen = false;
+    for (int j = 127; j >= 0; --j) {
+      if (column[j]) {
+        seen = true;
+        world(bi + i, j, bk + k) = stretch_octave(stretch);
+        stretch ++;
+      } else if (seen) {
+        stretch = 1;
+      } else {
+        stretch = 0;
+      }
+    }
+
+
   }
 
   world._chunks[chunk_index].generated = true;
