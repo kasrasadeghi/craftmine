@@ -20,7 +20,7 @@ void Player::handleTick(const World& world) {
     if (_grounded) {
       auto wi = glm::round(feet());
       if (world(wi.x, wi.y, wi.z)) {
-        camera.setPos({feet().x, wi.y + 2.25f, feet().z});
+        camera.setPos({feet().x, wi.y + 0.5f + 1.75f, feet().z});
       }
     }
   }
