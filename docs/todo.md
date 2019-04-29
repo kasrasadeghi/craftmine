@@ -23,4 +23,10 @@ investigate shadow volumes
 final:
 advanced terrain gen - 3d perlin noise, air cutoff with gradient, cave digouts
 investigate making glad a static lib
+runescape less strong
+extreme hill only sometimes
+downsample with intelligent interpolation
+fix player (collision?) crashing outside of chunk height bounds
 > DONE
+stretch octaves
+3d perlin
