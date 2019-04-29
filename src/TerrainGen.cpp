@@ -84,10 +84,15 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
         seen = true;
         world(i, j, k) = stretch_octave(stretch);
         stretch ++;
-      } else if (seen) {
-        stretch = 1;
       } else {
-        stretch = 0;
+        if (seen) {
+          stretch = 2;
+        } else {
+          stretch = 0;
+        }
+        if (j < 40) {
+          world(i, j, k) = Terrain::WATER;
+        }
       }
     }
 
