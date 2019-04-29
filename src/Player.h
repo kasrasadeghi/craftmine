@@ -54,7 +54,7 @@ struct Player {
       camera.translate(-glm::vec3(1)*forward()); break;
     }
 
-    if (collided(world)) {
+    if (collided(world) && _current_mode == Mode::Survival) {
       setPos(p);
     }
   }
