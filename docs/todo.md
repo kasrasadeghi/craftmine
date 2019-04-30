@@ -27,6 +27,8 @@ runescape less strong
 extreme hill only sometimes
 downsample with intelligent interpolation
 fix player (collision?) crashing outside of chunk height bounds
+draw player
+player shadow
 > DONE
 stretch octaves
 3d perlin
