@@ -53,27 +53,32 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     int i = bi + di;
     int k = bk + dk;
 
+    int height_base = 30 * perlin(i/ 500.f, k / 500.f);
 
-    int base_y = 30;
-    float delta_y = 0;
-    delta_y += 10 * perlin(i / 64.f, k / 64.f);
-    delta_y += 20 * perlin(i / 32.f, k / 32.f);
+    // int base_y = height_base;
+    // float delta_y = 0;
+    // delta_y += 10 * perlin(i / 64.f, k / 64.f);
+    // delta_y += 20 * perlin(i / 32.f, k / 32.f);
+ 
+    // delta_y = glm::pow(delta_y, 1.15f);
 
-    delta_y = glm::pow(delta_y, 1.15f);
-
-    int h = glm::clamp<int>(base_y + delta_y, 0, 127);
+    // int h = glm::clamp<int>(base_y + delta_y, 0, 127);
 
     // solidity of block
     bool column[128] = {}; // all elements zero
-    for (int j = 0; j < 80; ++j) {
-      column[j] = j <= h;
-    }
+    // for (int j = 0; j < 80; ++j) {
+    //   column[j] = j <= h;
+    // }
 
-    for (int j = 30; j < 100; ++j) {
+    // float vertical_variance = 50 + 20 * perlin(i/70.f, k/70.f);
+
+    for (int j = 30; j < CHUNK_HEIGHT; ++j) {
       if (not column[j]) {
-        float p = 4 * perlin(i / 100.f, j / 50.f, k / 100.f);
-        float k = (128 - j)/128.f;
-        column[j] = glm::floor(k * p);
+        float p = 3 * perlin(i / 100.f, (j - 30) / 50.f, k / 100.f);
+        float scale0 = (128 - j)/128.f;
+        float scale1 = glm::exp(-0.1 * j + 3)/20.f;
+        float scale = glm::mix(scale0, scale1, 0.2);
+        column[j] = glm::floor(scale * p);
       }
     }
     
@@ -91,7 +96,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
           stretch = 0;
         }
         if (j < 40) {
-          world(i, j, k) = Terrain::WATER;
+          // world(i, j, k) = Terrain::WATER;
         }
       }
     }
