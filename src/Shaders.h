@@ -315,7 +315,7 @@ vec4 axis_color() {
 }
 
 vec4 height_atten(vec4 color) {
-  float w = (70 - world_position.y)/35;
+  float w = (120 - world_position.y)/150;
   return mix(vec4(0, 0, 0, 0), color, 1 - w);
 }
 
