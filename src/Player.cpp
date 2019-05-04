@@ -106,7 +106,15 @@ void Player::handleMouse(int button, int action, int mods, World& world) {
       world(prev.x, prev.y, prev.z) = _held_block;
     }
 
-    world._chunks[World::toChunk(block)]._instances.clear();
+    glm::ivec2 chunk = World::toChunk(block);
+    world._chunks[chunk]._instances.clear();
+
+    //TODO figure out chunks that need rerendering intelligently
+    world._chunks[chunk + glm::ivec2(1, 0)]._instances.clear();
+    world._chunks[chunk + glm::ivec2(-1, 0)]._instances.clear();
+    world._chunks[chunk + glm::ivec2(0, 1)]._instances.clear();
+    world._chunks[chunk + glm::ivec2(0, -1)]._instances.clear();
+
     world._dirty = true;
   }
 }
