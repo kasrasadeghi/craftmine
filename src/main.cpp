@@ -350,6 +350,8 @@ int main() {
         tr.renderText((world(p.x, y, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
       }
     }
+
+    tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", window.width() - 400, window.height()/2, 1, glm::vec4(1));
     
     float msgi = 100;
     for (auto&& message : build_messages) {
