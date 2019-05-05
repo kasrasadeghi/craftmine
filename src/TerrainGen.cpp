@@ -88,14 +88,15 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
         
         // float gradient =  1 + 1/p2 - y/64.f;
+        float p2 = perlin(i / 150.f, 0, k / 150.f);
         float p = perlin(i / 150.f, y / 128.f, k / 150.f);
 
-        float scalefac = .6f;
-        float gradient = 3 - y/64.f;
+        float scalefac = .4f + .4f * p2;
+        float gradient = (2 + p2) - y/64.f;
 
         column[y] = glm::floor(glm::mix(gradient, p, scalefac));
         // column[y] = glm::floor(scale0);
-
+        water_level = 20;
       }
     }
     
@@ -117,8 +118,6 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
         }
       }
     }
-
-
   }
 
   world._chunks[chunk_index].generated = true;
