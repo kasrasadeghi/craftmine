@@ -104,7 +104,7 @@ int main() {
   TerrainGen::spawn(world, player);
 
   std::vector<Instance> instances;
-  world.build(instances);
+  world.build(instances, player);
 
   GLuint worldVAO;
   struct VBO_ {
@@ -218,7 +218,9 @@ int main() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);  
 
   double fps_counter_time = glfwGetTime();
+  int framecounter = 0;
   while (window.isOpen()) {
+    framecounter ++;
     // glfwGetFramebufferSize(window, &window_width, &window_height);
     if (window.getKey(GLFW_KEY_W)) { player.move(2, world);; }
     if (window.getKey(GLFW_KEY_S)) { player.move(3, world); }
@@ -232,7 +234,7 @@ int main() {
     player.handleTick(world);
     world.handleTick(player); // updates world._active set
 
-    if (world.dirty()) {
+    if (world._might_need_generation) {
       build_messages.clear();
       double start = glfwGetTime();
       build_messages.emplace_back("building active set of size " + str(world._active_set.size()));
@@ -245,15 +247,15 @@ int main() {
           TerrainGen::chunk(world, chunk_index);
         }
       }
-
+      world._might_need_generation = false;
+      
       build_messages.emplace_back("generate chunk: " + str(glfwGetTime() - start));
-
-      world.build(instances);
-      glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
-      glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
-      world._dirty = false;
-      build_messages.emplace_back("build world:   " + str(glfwGetTime() - start));
     }
+
+    world.build(instances, player);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
+
 
     float aspect = static_cast<float>(window.width()) / window.height();
     glm::mat4 projection_matrix(0);

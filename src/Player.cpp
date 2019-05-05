@@ -115,6 +115,6 @@ void Player::handleMouse(int button, int action, int mods, World& world) {
     world._chunks[chunk + glm::ivec2(0, 1)]._instances.clear();
     world._chunks[chunk + glm::ivec2(0, -1)]._instances.clear();
 
-    world._dirty = true;
+    // world._might_need_building = true;
   }
 }

@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <future>
+#include <algorithm>
 
 constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 128;
@@ -33,11 +34,13 @@ struct Chunk {
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
   std::vector<Instance> _instances;
 
-  void build(glm::ivec2 offset, std::vector<Instance>& instances, std::function<bool(int,int,int)> worldIsAir) {
+  // build instances for this chunk
+  // @returns true if instances were built, false if cache was used
+  bool build(glm::ivec2 offset, std::vector<Instance>& instances, std::function<bool(int,int,int)> worldIsAir) {
     if (not _instances.empty()) {
       instances.reserve(instances.size() + _instances.size());
       std::copy(_instances.begin(), _instances.end(), std::back_inserter(instances));
-      return;
+      return false;
     }
 
     auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs, GLuint texture_index) {
@@ -72,6 +75,8 @@ struct Chunk {
         addCube({i + offset.x, j, k + offset.y}, airs, data[i][j][k]);
       }
     }}}
+
+    return true;
   }
 };
 
@@ -81,11 +86,9 @@ struct World {
   std::unordered_map<glm::ivec2, Chunk> _chunks;
   std::unordered_set<glm::ivec2> _active_set;
   glm::ivec2 _player_chunk_index;
-  bool _dirty = true;
+  bool _might_need_generation = true;
 
   World(Player& player);
-
-  bool dirty() const { return _dirty; }
 
   void handleTick(Player& player);
 
@@ -111,12 +114,7 @@ struct World {
     return _chunks.at(glm::ivec2{ci, ck}).data.at(di).at(j).at(dk);
   }
 
-  void build(std::vector<Instance>& instances) {
-    instances.clear();
-    for (const glm::ivec2& chunk_index : _active_set) {
-      _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances, [&](int i, int j, int k){return isAir(i, j, k);});
-    }
-  }
+  void build(std::vector<Instance>& instances, Player& player);
 
   bool isAir(int i, int j, int k) const {
     if (j >= 0 && j < CHUNK_HEIGHT) {
