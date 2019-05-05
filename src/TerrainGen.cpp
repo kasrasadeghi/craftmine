@@ -55,6 +55,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
     // solidity of block
     bool column[128] = {}; // all elements zero
+    int highest_block = 40; // sea level
 
     int height_base = 10;
     // int height_base = 30 + 50 * perlin(i/ 500.f, k / 500.f);
@@ -95,6 +96,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
         float gradient = (2 + p2) - y/64.f;
 
         column[y] = glm::floor(glm::mix(gradient, p, scalefac));
+        highest_block = column[y] ? glm::max<int>(y, highest_block) : highest_block;
         // column[y] = glm::floor(scale0);
       }
     }
@@ -114,6 +116,31 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
         }
         if (j < 40) {
           world(i, j, k) = Terrain::WATER;
+        }
+      }
+    }
+    // add trees!
+
+    // see if this column needs a tree
+    float p = perlin(i / 10.f, k / 10.f);
+    constexpr float tree_thresh = 0.98f;
+ 
+    bool make_tree = 
+        p >= tree_thresh 
+        && world(i, highest_block, k) == Terrain::GRASS;
+
+    if (make_tree) {
+      // calculate height
+      float diff = (p - tree_thresh) * 100;
+      
+      // bounds check ehh not really importaint but you kno
+      // diff = glm::min(128 - highest_block, diff);
+
+      // plant a tree at highest_block
+      for (int dj = 0; dj < diff; ++dj) {
+        int j = dj + highest_block + 1;
+        if (j < CHUNK_HEIGHT) {
+          world(i, j, k) = Terrain::DIRT;
         }
       }
     }
