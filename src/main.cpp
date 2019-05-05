@@ -19,7 +19,7 @@
 
 #include <future>
 
-constexpr bool SHADOWS = true;
+constexpr bool SHADOWS = false;
 
 int main() {
   srand(time(NULL));

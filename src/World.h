@@ -15,7 +15,7 @@
 constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 128;
 constexpr int GEN_DISTANCE = 10;
-constexpr int RENDER_DISTANCE = 12;
+constexpr int RENDER_DISTANCE = 7;
 
 struct Instance {
   Instance(glm::vec3 p, GLuint d, GLuint ti):
