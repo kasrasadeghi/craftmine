@@ -12,13 +12,15 @@ struct Player {
   float _velocity_y = 0;
   enum class Mode { Survival, Creative };
   Mode _current_mode = Mode::Creative;
+  float speed = 5;
+  float vert_speed = 2;
 
   void handleTick(const World& world);
   void handleMouse(int button, int action, int mods, World& world);
 
   void jump() {
     if (_current_mode == Mode::Creative) {
-      camera.translate(camera.up() * glm::vec3(0.2));
+      camera.translate(camera.up() * glm::vec3(0.2 * vert_speed));
     }
   }
 
@@ -36,7 +38,7 @@ struct Player {
 
   void moveDown() {
     if (_current_mode == Mode::Creative) {
-      camera.translate(-camera.up() * glm::vec3(0.2));
+      camera.translate(-camera.up() * glm::vec3(0.2 * vert_speed));
     }
   }
 
@@ -45,13 +47,13 @@ struct Player {
 
     switch(direction) {
     case 0:  // right
-      camera.strafe(-1); break;
+      camera.strafe(-speed); break;
     case 1:  // left
-      camera.strafe(1); break;
+      camera.strafe(speed); break;
     case 2:  // forward
-      camera.translate(glm::vec3(1)*forward()); break;
+      camera.translate(glm::vec3(speed)*forward()); break;
     case 3:  // backward
-      camera.translate(-glm::vec3(1)*forward()); break;
+      camera.translate(-glm::vec3(speed)*forward()); break;
     }
 
     if (collided(world) && _current_mode == Mode::Survival) {
