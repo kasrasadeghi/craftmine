@@ -96,7 +96,6 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
         column[y] = glm::floor(glm::mix(gradient, p, scalefac));
         // column[y] = glm::floor(scale0);
-        water_level = 20;
       }
     }
     
@@ -114,7 +113,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
           stretch = 0;
         }
         if (j < 40) {
-          // world(i, j, k) = Terrain::WATER;
+          world(i, j, k) = Terrain::WATER;
         }
       }
     }
