@@ -30,6 +30,9 @@ extreme hill only sometimes
 downsample with intelligent interpolation
 incremental chunk generation
 neighboring chunks on break refresh a lot
+trees
+caves
+rivers
 > DONE
 incremental chunk building
 fix player (collision?) crashing outside of chunk height bounds
