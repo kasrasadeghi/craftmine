@@ -286,11 +286,11 @@ int main() {
       glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
       
       // Compute uniforms
-      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 70, 0, 0), 0.5f * glm::sin((float)glfwGetTime()/5), glm::vec3(1, 0, 1));
-      light_position = glm::vec4(player.head() + glm::vec3(light_offset), 1);
+      glm::vec4 light_offset = glm::rotate(glm::vec4(0, 128 + 60, 0, 0), 0.5f * glm::sin((float)glfwGetTime()/5), glm::vec3(1, 0, 1));
+      light_position = glm::vec4(glm::vec3{player.head().x, 0, player.head().z} + glm::vec3(light_offset), 1);
 
       light_space_matrix = glm::mat4(0);
-      projection_matrix = glm::ortho(-300.0f, 300.0f, -300.0f, 300.0f, 50.f, 150.0f);
+      projection_matrix = glm::ortho(-400.0f, 400.0f, -400.0f, 400.0f, 50.f, 200.0f);
   		// projection_matrix = glm::perspective(glm::radians(120.0f), aspect, 5.f, 1000.0f);
       view_matrix = glm::lookAt(glm::vec3(light_position), player.head(), glm::vec3(1, 0, 0));
       // view_matrix = player.camera.get_view_matrix();
@@ -352,6 +352,7 @@ int main() {
     }
 
     tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", window.width() - 400, window.height()/2, 1, glm::vec4(1));
+    // FIXME: also need to include instances in memory usage heuristics
     
     float msgi = 100;
     for (auto&& message : build_messages) {
