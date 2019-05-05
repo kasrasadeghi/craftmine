@@ -335,7 +335,11 @@ int main() {
     fps_counter_time = glfwGetTime();
     for (int i = 0; i < 3; ++i) {
       auto p = player.blockPosition();
-      tr.renderText((world(p.x, p.y - i, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
+      auto y = p.y - i;
+
+      if (y < CHUNK_HEIGHT && y >= 0) {
+        tr.renderText((world(p.x, y, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
+      }
     }
     
     float msgi = 100;
