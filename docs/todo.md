@@ -33,6 +33,7 @@ neighboring chunks on break refresh a lot
 trees
 caves
 rivers
+reorder bytes so that height is compact
 > DONE
 incremental chunk building
 fix player (collision?) crashing outside of chunk height bounds
