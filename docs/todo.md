@@ -19,16 +19,18 @@ day night cycle
 handle resizes
 water transparency
 investigate shadow volumes
+draw player
+player shadow
+investigate making glad a static lib
 
 final:
-advanced terrain gen - 3d perlin noise, air cutoff with gradient, cave digouts
-investigate making glad a static lib
+advanced terrain gen - air cutoff with gradient, cave digouts
 runescape less strong
 extreme hill only sometimes
 downsample with intelligent interpolation
-fix player (collision?) crashing outside of chunk height bounds
-draw player
-player shadow
+incremental chunk generation
 > DONE
+incremental chunk building
+fix player (collision?) crashing outside of chunk height bounds
 stretch octaves
 3d perlin
