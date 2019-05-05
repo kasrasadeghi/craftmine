@@ -239,15 +239,22 @@ int main() {
       double start = glfwGetTime();
       build_messages.emplace_back("building active set of size " + str(world._active_set.size()));
 
+      constexpr int gen_chunk_limit = 1;
+      int gen_chunk_count = 0;
+      bool incomplete = false;
       for (const glm::ivec2& chunk_index : world._active_set) {
+        // FIXME: simplify/refactor this logic
         if (not world.hasChunk(chunk_index)) {
           world._chunks[chunk_index] = {};
         }
-        if (not world.isChunkGenerated(chunk_index)) {
+        if (not world.isChunkGenerated(chunk_index) && gen_chunk_count < gen_chunk_limit) {
           TerrainGen::chunk(world, chunk_index);
+          gen_chunk_count ++;
+        } else {
+          incomplete = true;
         }
       }
-      world._might_need_generation = false;
+      world._might_need_generation = incomplete;
       
       build_messages.emplace_back("generate chunk: " + str(glfwGetTime() - start));
     }
