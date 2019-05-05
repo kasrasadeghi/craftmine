@@ -72,19 +72,24 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     // }
 
     // float vertical_variance = 50 + 20 * perlin(i/70.f, k/70.f);
+    column[20] = 1;
 
-    for (int dy = 0; dy < 50; ++dy) {
-      int y = height_base + dy;
+    for (int y = 0; y < 128; ++y) {
       if (not column[y]) {
 
-        float p = 3 * perlin(i / 150.f, dy / 50.f, k / 150.f);
-        float scale0 = 1 - dy/50.f;
-        // float scale1 = glm::exp(-0.1 * j + 3)/20.f;
+        // float p = perlin(i / 150.f, y / 128.f, k / 150.f);
+        // float scale0 = y/128.f;
+        // float scale1 = glm::exp(-0.1 * j + 3/20.f;
         // float scale = glm::mix(scale0, scale1, 0.2);
         
         // column[y] = glm::floor(scale0 * p);
-        column[y] = glm::floor(glm::mix(p, 1.f, scale0));
+        // column[y] = glm::floor(glm::mix(1.f, p, scale0));
         // column[y] = glm::floor(scale0);
+        // column[y] = glm::floor(p);
+
+        float p = perlin(i / 150.f, y / 128.f, k / 150.f);
+        column[y] = glm::floor(p);
+
       }
     }
     
