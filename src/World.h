@@ -9,7 +9,6 @@
 #include <sys/types.h> // FIXME: remove and just use GL___ types
 #include <vector>
 #include <unordered_map>
-#include <unordered_set>
 #include <future>
 #include <algorithm>
 
@@ -84,13 +83,15 @@ struct Player;
 
 struct World {
   std::unordered_map<glm::ivec2, Chunk> _chunks;
-  std::unordered_set<glm::ivec2> _active_set;
+  std::vector<glm::ivec2> _active_set; // invariant: in increasing distance from the player
   glm::ivec2 _player_chunk_index;
   bool _might_need_generation = true;
 
   World(Player& player);
 
   void handleTick(Player& player);
+
+  void updateActiveSet(Player& player);
 
   u_char& operator()(int i, int j, int k) {
     auto good_mod = [](int x, int y) { return (y + (x%y)) % y; };

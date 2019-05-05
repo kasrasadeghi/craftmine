@@ -4,14 +4,8 @@
 #include <glm/gtx/string_cast.hpp>
 
 World::World(Player& player) : _player_chunk_index(toChunk(player.blockPosition())) {
-  _active_set.clear();
-  for (int i = -RENDER_DISTANCE; i <= RENDER_DISTANCE; ++i)
-  for (int k = -RENDER_DISTANCE; k <= RENDER_DISTANCE; ++k) {
-    glm::ivec2 curr_index = _player_chunk_index + glm::ivec2(i, k);
-    _active_set.emplace(curr_index);
-  }
+  updateActiveSet(player);
 }
-
 
 void World::handleTick(Player& player) {
   auto chunk_index = toChunk(player.blockPosition());
@@ -19,26 +13,34 @@ void World::handleTick(Player& player) {
   if (_player_chunk_index != chunk_index) {
     _might_need_generation = true;
     _player_chunk_index = chunk_index;
-
-    _active_set.clear();
-    for (int i = -RENDER_DISTANCE; i <= RENDER_DISTANCE; ++i)
-    for (int k = -RENDER_DISTANCE; k <= RENDER_DISTANCE; ++k) {
-      glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
-      _active_set.emplace(curr_index);
-    }
+    updateActiveSet(player);
   }
 }
 
+void World::updateActiveSet(Player& player) {
+  auto chunk_index = toChunk(player.blockPosition());
+
+  _active_set.clear();
+  for (int i = -RENDER_DISTANCE; i <= RENDER_DISTANCE; ++i)
+  for (int k = -RENDER_DISTANCE; k <= RENDER_DISTANCE; ++k) {
+    glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
+    _active_set.emplace_back(curr_index);
+  }
+  glm::vec2 pos {player.head().x, player.head().z};
+  std::sort(_active_set.begin(), _active_set.end(), [pos](glm::ivec2 a, glm::ivec2 b) {
+    return (glm::distance(glm::vec2(a * glm::ivec2(16)), pos)) 
+          < (glm::distance(glm::vec2(b * glm::ivec2(16)), pos));
+  });
+}
+
+// requires that every element of _active_set be present in _chunks and be generated
 void World::build(std::vector<Instance>& instances, Player& player) {
 
   instances.clear();
 
   auto build_chunk = [&](glm::ivec2 chunk_index) -> bool {
-    if (hasChunk(chunk_index) && isChunkGenerated(chunk_index)) {
-      return _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances, [&](int i, int j, int k){return isAir(i, j, k);});
-    } else {
-      return false;
-    }
+    assert (hasChunk(chunk_index) && isChunkGenerated(chunk_index));
+    return _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances, [&](int i, int j, int k){return isAir(i, j, k);});
   };
 
   // separate _active_set into chunks that need to be built and chunks that are already built
@@ -56,13 +58,7 @@ void World::build(std::vector<Instance>& instances, Player& player) {
     assert(not b);
   }
 
-  // build the chunks that need new instances
-  glm::vec2 pos {player.head().x, player.head().z};
-  std::sort(to_be_built_set.begin(), to_be_built_set.end(), [pos](glm::ivec2 a, glm::ivec2 b) {
-    return (glm::distance(glm::vec2(a * glm::ivec2(16)), pos)) 
-          < (glm::distance(glm::vec2(b * glm::ivec2(16)), pos));
-  });
-
+  // build the chunks that need new instances until the limit is hit
   constexpr int new_count_limit = 1;
   bool incomplete = false;
   int new_count = 0;
