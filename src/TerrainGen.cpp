@@ -121,7 +121,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   
   struct Tree_ {
     glm::ivec2 pos;
-    float size;
+    float size; // 0 .. 3
   };
 
   // decide where to put trees
@@ -149,6 +149,8 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     curr += glm::floor(glm::vec2(tree_size + 3) * circle_rand());
   }
 
+  // FIXME: SLOW AF, extract and optimize
+  // secound pass tree planting
   auto plant_tree = [&](glm::ivec2 pos, float size) {
     // find the block to plant upon
     float max_height = CHUNK_HEIGHT - 1;
@@ -163,7 +165,22 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     }
     
     ++max_height;
-    for (int dj = 0; dj < glm::pow(size * 2, 1.2); ++dj) {  
+    // FIXME: slow pow
+    const auto tree_height = glm::pow(size * 2, 1.2);
+    int floof = size * 0.75f;
+
+    // leaf it up
+    for (int i = -floof; i <= floof; ++i) 
+    for (int j = -floof; j <= floof; ++j) 
+    for (int k = -floof; k <= floof; ++k) 
+    {
+      int y = max_height + tree_height + j;
+      if (y < CHUNK_HEIGHT) {
+        world(pos.x + i, y, pos.y + k) = Terrain::WATER;
+      }
+    }
+
+    for (int dj = 0; dj < tree_height; ++dj) {  
       int y = max_height + dj;
       if (y < CHUNK_HEIGHT) {
         world(pos.x, y, pos.y) = Terrain::DIRT;
