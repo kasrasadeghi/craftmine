@@ -30,6 +30,7 @@ struct Instance {
 using std::array;
 struct Chunk {
   bool generated = false;
+  bool built = false;
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
   std::vector<Instance> _instances;
 

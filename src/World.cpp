@@ -39,7 +39,8 @@ void World::build(std::vector<Instance>& instances, Player& player) {
   instances.clear();
 
   auto build_chunk = [&](glm::ivec2 chunk_index) -> bool {
-    assert (hasChunk(chunk_index) && isChunkGenerated(chunk_index));
+    assert (hasChunk(chunk_index));
+    // assert (isChunkGenerated(chunk_index));
     return _chunks[chunk_index].build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, instances, [&](int i, int j, int k){return isAir(i, j, k);});
   };
 

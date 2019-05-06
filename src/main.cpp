@@ -251,6 +251,7 @@ int main() {
           TerrainGen::chunk(world, chunk_index);
           gen_chunk_count ++;
         } else {
+          // FIXME: I think incomplete is wrong
           incomplete = true;
         }
       }
