@@ -5,6 +5,7 @@
 #include "Terrain.h"
 
 #include <iostream>
+#include <glm/gtx/string_cast.hpp>
 
 // FIXME: is every chunk actually only loaded once?
 
@@ -55,9 +56,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
     // solidity of block
     bool column[128] = {}; // all elements zero
-    int highest_block = 40; // sea level
 
-    int height_base = 10;
     // int height_base = 30 + 50 * perlin(i/ 500.f, k / 500.f);
 
     // column[height_base] = 1;
@@ -96,7 +95,6 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
         float gradient = (2 + p2) - y/64.f;
 
         column[y] = glm::floor(glm::mix(gradient, p, scalefac));
-        highest_block = column[y] ? glm::max<int>(y, highest_block) : highest_block;
         // column[y] = glm::floor(scale0);
       }
     }
@@ -119,31 +117,62 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
         }
       }
     }
-    // add trees!
+  }
+  
+  struct Tree_ {
+    glm::ivec2 pos;
+    float size;
+  };
 
-    // see if this column needs a tree
-    float p = perlin(i / 10.f, k / 10.f);
-    constexpr float tree_thresh = 0.98f;
- 
-    bool make_tree = 
-        p >= tree_thresh 
-        && world(i, highest_block, k) == Terrain::GRASS;
+  // decide where to put trees
+  std::vector<Tree_> trees;
 
-    if (make_tree) {
-      // calculate height
-      float diff = (p - tree_thresh) * 100;
-      
-      // bounds check ehh not really importaint but you kno
-      // diff = glm::min(128 - highest_block, diff);
+  auto rand1 = []() -> float {
+    return rand()/(float)RAND_MAX;
+  };
 
-      // plant a tree at highest_block
-      for (int dj = 0; dj < diff; ++dj) {
-        int j = dj + highest_block + 1;
-        if (j < CHUNK_HEIGHT) {
-          world(i, j, k) = Terrain::DIRT;
-        }
+  auto circle_rand = [rand1]() -> glm::vec2 {
+    constexpr float TWO_PI = 6.28318530717958647692528676655900576;
+    float theta = rand1() * TWO_PI;
+    return glm::vec2 {glm::cos(theta), glm::sin(theta)};
+  };
+
+  auto curr = glm::ivec2 {1 + rand1() * 4, 1 + rand1() * 4};
+  for (int try_number = 0; try_number < 10; ++try_number) 
+  {
+    float tree_size = rand1() * 3;
+    trees.emplace_back(Tree_{
+      chunk_index * glm::ivec2(CHUNK_SIZE) + curr, 
+      tree_size
+    });
+
+    curr += glm::floor(glm::vec2(tree_size + 3) * circle_rand());
+  }
+
+  auto plant_tree = [&](glm::ivec2 pos, float size) {
+    // find the block to plant upon
+    float max_height = CHUNK_HEIGHT - 1;
+    
+    for (; max_height >= 40; --max_height) {
+      if (world(pos.x, max_height, pos.y)) {
+        break;
       }
     }
+    if (world(pos.x, max_height, pos.y) != Terrain::GRASS) {
+      return;
+    }
+    
+    ++max_height;
+    for (int dj = 0; dj < glm::pow(size * 2, 1.2); ++dj) {  
+      int y = max_height + dj;
+      if (y < CHUNK_HEIGHT) {
+        world(pos.x, y, pos.y) = Terrain::DIRT;
+      }
+    }
+  };
+
+  for (auto tree : trees) {
+    plant_tree(tree.pos, tree.size);
   }
 
   world._chunks[chunk_index].generated = true;
