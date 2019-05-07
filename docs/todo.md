@@ -17,22 +17,22 @@ fix blocks placed on chunk boundary issues
 inventory
 day night cycle
 handle resizes
-water transparency
 investigate shadow volumes
 draw player
 player shadow
 investigate making glad a static lib
 
-
-final:
+premake:
 advanced terrain gen - air cutoff with gradient, cave digouts
 runescape less strong
 extreme hill only sometimes
+rivers
+
+final:
+water transparency
 downsample with intelligent interpolation
 neighboring chunks on break refresh a lot
 caves
-rivers
-reorder bytes so that height is compact
 > DONE
 trees
 trees mess up friends that have already instanced
