@@ -167,11 +167,11 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     }
     
     ++max_height;
+    // leaf it up
     // FIXME: slow pow
     const auto tree_height = glm::pow(size * 2, 1.2);
     int floof = size * 0.75f;
 
-    // leaf it up
     for (int i = -floof; i <= floof; ++i) 
     for (int j = -floof; j <= floof; ++j) 
     for (int k = -floof; k <= floof; ++k)
