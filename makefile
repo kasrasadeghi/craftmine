@@ -1,16 +1,16 @@
 default: run
 
-rebuild:
+release:
 	rm -rf build
 	mkdir build
 	(cd build; cmake -DCMAKE_BUILD_TYPE=Release -DGTEST=FALSE ..; make -j8)
 
 run:
 	[ -d build ] || mkdir build
-	(cd build; cmake -DGTEST=FALSE ..; make -j8)
+	(cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DGTEST=FALSE ..; make -j8)
 	build/bin/minecraft
 
-speed:
+fast:
 	[ -d build ] || mkdir build
 	(cd build; cmake -DCMAKE_BUILD_TYPE=Release -DGTEST=FALSE ..; make -j8)
 	build/bin/minecraft
@@ -18,10 +18,10 @@ speed:
 .PHONY: test
 test:
 	[ -d build ] || mkdir build
-	(cd build; cmake -DGTEST=TRUE ..; make -j8)
+	(cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DGTEST=TRUE ..; make -j8)
 	build/bin/test
 
-speedtest:
+time:
 	[ -d build ] || mkdir build
 	(cd build; cmake -DCMAKE_BUILD_TYPE=Release -DGTEST=TRUE ..; make -j8)
 	build/bin/test
