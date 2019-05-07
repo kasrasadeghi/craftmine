@@ -46,7 +46,6 @@ struct Chunk {
   /// build instances for this chunk
   void build(glm::ivec2 offset, std::function<bool(int,int,int)> worldIsAir) {
     assert (generated);
-    assert (not built);
     _instances.clear();
 
     auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs, GLuint texture_index) {
@@ -103,23 +102,30 @@ struct World {
   u_char& operator()(int i, int j, int k) {
     auto good_mod = [](int x, int y) { return (y + (x%y)) % y; };
 
-    int ci = i / CHUNK_SIZE;
-    int ck = k / CHUNK_SIZE;
     int di = good_mod(i, CHUNK_SIZE);
     int dk = good_mod(k, CHUNK_SIZE);
-    // sometimes default constructs
-    return _chunks[glm::ivec2{ci, ck}].data.at(di).at(j).at(dk);
+    auto chunk_index = toChunk({i, j, k});
+    assert (hasChunk(chunk_index));
+    return _chunks.at(chunk_index).data.at(di).at(j).at(dk);
+  }
+
+  u_char& forceGet(int i, int j, int k) {
+    auto good_mod = [](int x, int y) { return (y + (x%y)) % y; };
+
+    int di = good_mod(i, CHUNK_SIZE);
+    int dk = good_mod(k, CHUNK_SIZE);
+    Chunk& chunk = _chunks[toChunk({i, j, k})];
+    return chunk.data.at(di).at(j).at(dk);
   }
 
   u_char operator()(int i, int j, int k) const {
     auto good_mod = [](int x, int y) { return (y + (x%y)) % y; };
 
-    int ci = i / CHUNK_SIZE;
-    int ck = k / CHUNK_SIZE;
     int di = good_mod(i, CHUNK_SIZE);
     int dk = good_mod(k, CHUNK_SIZE);
-    // sometimes default constructs
-    return _chunks.at(glm::ivec2{ci, ck}).data.at(di).at(j).at(dk);
+    auto chunk_index = toChunk({i, j, k});
+    assert (hasChunk(chunk_index));
+    return _chunks.at(chunk_index).data.at(di).at(j).at(dk);
   }
 
   void build(std::vector<Instance>& instances);

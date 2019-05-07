@@ -117,9 +117,9 @@ int main() {
 	glBindVertexArray(worldVAO);
 	glGenBuffers(3, (GLuint*)(&VBO));
 
-  // Setup element array buffer.
+	// Setup element array buffer.
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO.index_buffer);
-  	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::uvec3) * faces.size(), faces.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::uvec3) * faces.size(), faces.data(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO.vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
@@ -146,13 +146,13 @@ int main() {
   program_sources.geometry = world_geometry_shader;
   program_sources.fragment = world_fragment_shader;
 
-	GLuint program_id = CreateProgram(program_sources, {"vertex_position", "instance_offset", "direction", "texture_index"});
+  GLuint program_id = CreateProgram(program_sources, {"vertex_position", "instance_offset", "direction", "texture_index"});
   glUseProgram(program_id);
 
   struct {
-		GLint projection = 0;
-		GLint view = 0;
-		GLint light_pos = 0;
+    GLint projection = 0;
+    GLint view = 0;
+    GLint light_pos = 0;
     GLint light_space = 0;
     GLint wireframe = 0;
     GLint bases = 0;
@@ -160,9 +160,9 @@ int main() {
 	} uniform;
 
   uniform.projection   = glGetUniformLocation(program_id, "projection");
-	uniform.view         = glGetUniformLocation(program_id, "view");
-	uniform.light_space  = glGetUniformLocation(program_id, "light_space");
-	uniform.light_pos    = glGetUniformLocation(program_id, "light_position");
+  uniform.view         = glGetUniformLocation(program_id, "view");
+  uniform.light_space  = glGetUniformLocation(program_id, "light_space");
+  uniform.light_pos    = glGetUniformLocation(program_id, "light_position");
   uniform.wireframe    = glGetUniformLocation(program_id, "wireframe");
   uniform.bases        = glGetUniformLocation(program_id, "base_colors");
   uniform.offs         = glGetUniformLocation(program_id, "off_colors");
@@ -239,7 +239,6 @@ int main() {
     build_messages.emplace_back("building active set of size " + str(world._active_set.size()));
 
     for (const glm::ivec2& chunk_index : world._active_set) {
-      // FIXME: simplify/refactor this logic
       if (not world.hasChunk(chunk_index)) {
         world._chunks[chunk_index] = {};
       }
@@ -247,11 +246,31 @@ int main() {
         TerrainGen::chunk(world, chunk_index);
         break;
       }
-      if (not world._chunks.at(chunk_index).built) {
+      
+      bool is_surroundings_generated = ([&]() {
+        for (int i = -1; i <= 1; ++i)
+        for (int k = -1; k <= 1; ++k) {
+          glm::ivec2 curr_index = chunk_index + glm::ivec2{i, k};
+
+          if (not world.hasChunk(curr_index)) {
+            return false;
+          }
+
+          if (not world._chunks.at(curr_index).generated) {
+            return false;
+          }
+        }
+
+        return true;
+      })();
+	
+      if (not world._chunks.at(chunk_index).built && is_surroundings_generated) {
         world.buildChunk(chunk_index);
         break;
       }
     }
+      
+    
     build_messages.emplace_back("generate chunk: " + str(glfwGetTime() - start));
 
     world.build(instances);

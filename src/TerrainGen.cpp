@@ -147,11 +147,15 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     curr += glm::floor(glm::vec2(tree_size + 3) * circle_rand());
   }
 
-  // FIXME: SLOW AF, extract and optimize
   // secound pass tree planting
   auto plant_tree = [&](glm::ivec2 pos, float size) {
     // find the block to plant upon
     float max_height = CHUNK_HEIGHT - 1;
+
+    // if we have not yet generated/instantiated the chunk
+    if (not world.hasChunk(World::toChunk({pos.x, 0, pos.y}))) {
+      return;
+    }
     
     for (; max_height >= 40; --max_height) {
       if (world(pos.x, max_height, pos.y)) {
@@ -170,11 +174,11 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     // leaf it up
     for (int i = -floof; i <= floof; ++i) 
     for (int j = -floof; j <= floof; ++j) 
-    for (int k = -floof; k <= floof; ++k) 
+    for (int k = -floof; k <= floof; ++k)
     {
       int y = max_height + tree_height + j;
       if (y < CHUNK_HEIGHT) {
-        world(pos.x + i, y, pos.y + k) = Terrain::WATER;
+        world.forceGet(pos.x + i, y, pos.y + k) = Terrain::WATER;
       }
     }
 
