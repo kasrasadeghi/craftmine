@@ -19,12 +19,10 @@ void TerrainGen::spawn(World& world, Player& player) {
       chunk(world, curr_index);
     }
   }
-  for (auto& p : world._chunks) {
-    p.second.generated = true;
-  }
 }
 
 void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
+  assert (world.hasChunk(chunk_index));
   assert (not world._chunks.at(chunk_index).generated);
 
   int bi = chunk_index.x * CHUNK_SIZE;

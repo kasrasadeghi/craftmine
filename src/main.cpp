@@ -104,7 +104,7 @@ int main() {
   TerrainGen::spawn(world, player);
 
   std::vector<Instance> instances;
-  world.build(instances, player);
+  world.build(instances);
 
   GLuint worldVAO;
   struct VBO_ {
@@ -234,33 +234,27 @@ int main() {
     player.handleTick(world);
     world.handleTick(player); // updates world._active set
 
-    if (world._might_need_generation) {
-      build_messages.clear();
-      double start = glfwGetTime();
-      build_messages.emplace_back("building active set of size " + str(world._active_set.size()));
+    build_messages.clear();
+    double start = glfwGetTime();
+    build_messages.emplace_back("building active set of size " + str(world._active_set.size()));
 
-      constexpr int gen_chunk_limit = 1;
-      int gen_chunk_count = 0;
-      bool incomplete = false;
-      for (const glm::ivec2& chunk_index : world._active_set) {
-        // FIXME: simplify/refactor this logic
-        if (not world.hasChunk(chunk_index)) {
-          world._chunks[chunk_index] = {};
-        }
-        if (not world.isChunkGenerated(chunk_index) && gen_chunk_count < gen_chunk_limit) {
-          TerrainGen::chunk(world, chunk_index);
-          gen_chunk_count ++;
-        } else {
-          // FIXME: I think incomplete is wrong
-          incomplete = true;
-        }
+    for (const glm::ivec2& chunk_index : world._active_set) {
+      // FIXME: simplify/refactor this logic
+      if (not world.hasChunk(chunk_index)) {
+        world._chunks[chunk_index] = {};
       }
-      world._might_need_generation = incomplete;
-      
-      build_messages.emplace_back("generate chunk: " + str(glfwGetTime() - start));
+      if (not world.isChunkGenerated(chunk_index)) {
+        TerrainGen::chunk(world, chunk_index);
+        break;
+      }
+      if (not world._chunks.at(chunk_index).built) {
+        world.buildChunk(chunk_index);
+        break;
+      }
     }
+    build_messages.emplace_back("generate chunk: " + str(glfwGetTime() - start));
 
-    world.build(instances, player);
+    world.build(instances);
     glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
 

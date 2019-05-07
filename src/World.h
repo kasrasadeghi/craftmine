@@ -34,19 +34,24 @@ struct Chunk {
   array<array<array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
   std::vector<Instance> _instances;
 
-  // build instances for this chunk
-  // @returns true if instances were built, false if cache was used
-  bool build(glm::ivec2 offset, std::vector<Instance>& instances, std::function<bool(int,int,int)> worldIsAir) {
-    if (not _instances.empty()) {
-      instances.reserve(instances.size() + _instances.size());
-      std::copy(_instances.begin(), _instances.end(), std::back_inserter(instances));
-      return false;
-    }
+  /// copy cached instances
+  void load(std::vector<Instance>& instances) {
+    assert (generated);
+    assert (built);
+    assert (not _instances.empty());
+    instances.reserve(instances.size() + _instances.size());
+    std::copy(_instances.begin(), _instances.end(), std::back_inserter(instances));
+  }
+
+  /// build instances for this chunk
+  void build(glm::ivec2 offset, std::function<bool(int,int,int)> worldIsAir) {
+    assert (generated);
+    assert (not built);
+    _instances.clear();
 
     auto addCube = [&](glm::vec3 pos, const std::array<bool, 6>& airs, GLuint texture_index) {
       for (int i = 0; i < 6; ++i) {
         if (airs[i]) {
-          instances.emplace_back(pos, i, texture_index);
           _instances.emplace_back(pos, i, texture_index);
         }
       }
@@ -59,9 +64,10 @@ struct Chunk {
       return data[i][j][k] == 0;
     };
 
-    for (int i = 0; i < CHUNK_SIZE; ++i) {
-    for (int j = 0; j < CHUNK_HEIGHT; ++j) {
-    for (int k = 0; k < CHUNK_SIZE; ++k) {
+    for (int i = 0; i < CHUNK_SIZE; ++i)
+    for (int j = 0; j < CHUNK_HEIGHT; ++j)
+    for (int k = 0; k < CHUNK_SIZE; ++k) 
+    {
       if (data[i][j][k] != 0) {
         std::array<bool, 6> airs = {
           isAir(i+1, j,   k),
@@ -74,9 +80,10 @@ struct Chunk {
 
         addCube({i + offset.x, j, k + offset.y}, airs, data[i][j][k]);
       }
-    }}}
+    }
 
-    return true;
+    assert (not _instances.empty());
+    built = true;
   }
 };
 
@@ -86,7 +93,6 @@ struct World {
   std::unordered_map<glm::ivec2, Chunk> _chunks;
   std::vector<glm::ivec2> _active_set; // invariant: in increasing distance from the player
   glm::ivec2 _player_chunk_index;
-  bool _might_need_generation = true;
 
   World(Player& player);
 
@@ -116,7 +122,9 @@ struct World {
     return _chunks.at(glm::ivec2{ci, ck}).data.at(di).at(j).at(dk);
   }
 
-  void build(std::vector<Instance>& instances, Player& player);
+  void build(std::vector<Instance>& instances);
+
+  void buildChunk(glm::ivec2 chunk_index);
 
   bool isAir(int i, int j, int k) const {
     if (j >= 0 && j < CHUNK_HEIGHT) {

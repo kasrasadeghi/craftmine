@@ -91,30 +91,35 @@ void Player::handleMouse(int button, int action, int mods, World& world) {
       return;
     }
 
+    bool action_taken = false;
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
       world(block.x, block.y, block.z) = 0;
+      action_taken = true;
     }
 
     if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
       auto& world_block = world(block.x, block.y, block.z);
       if (world_block != 0) {
         _held_block = world_block;
+        action_taken = true; //FIXME: technically not necessary, but useful for debugging
       }
     }
 
     if (placement_found && button == GLFW_MOUSE_BUTTON_RIGHT && _held_block != 0) {
       world(prev.x, prev.y, prev.z) = _held_block;
+      action_taken = true;
     }
 
-    glm::ivec2 chunk = World::toChunk(block);
-    world._chunks[chunk]._instances.clear();
+    if (action_taken) {
+      glm::ivec2 chunk = World::toChunk(block);
+      world._chunks[chunk].built = false;
 
-    //TODO figure out chunks that need rerendering intelligently
-    world._chunks[chunk + glm::ivec2(1, 0)]._instances.clear();
-    world._chunks[chunk + glm::ivec2(-1, 0)]._instances.clear();
-    world._chunks[chunk + glm::ivec2(0, 1)]._instances.clear();
-    world._chunks[chunk + glm::ivec2(0, -1)]._instances.clear();
-
+      //TODO figure out chunks that need rerendering intelligently
+      world._chunks[chunk + glm::ivec2(1, 0)].built = false;
+      world._chunks[chunk + glm::ivec2(-1, 0)].built = false;
+      world._chunks[chunk + glm::ivec2(0, 1)].built = false;
+      world._chunks[chunk + glm::ivec2(0, -1)].built = false;
+    }
     // world._might_need_building = true;
   }
 }
