@@ -23,6 +23,8 @@ struct Instance {
   float x;
   float y;
   float z;
+
+  //FIXME: use GLuchar for both direction and texture_index
   GLuint direction; // 0 .. 5 = x, y, z, -x, -y, -z
   GLuint texture_index;
 } __attribute__((packed));
@@ -156,7 +158,7 @@ struct World {
   }
 
   bool hasChunk(glm::ivec2 chunk_index) const {
-    return _chunks.count(chunk_index) != 0;
+    return _chunks.count(chunk_index);
   }
 
   bool isChunkGenerated(glm::ivec2 chunk_index) const {

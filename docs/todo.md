@@ -41,3 +41,6 @@ incremental chunk building
 fix player (collision?) crashing outside of chunk height bounds
 stretch octaves
 3d perlin
+
+bugs:
+need to put a mutex around {the body of the worker thread} and {the instance building}. chunk's backing store might be resized

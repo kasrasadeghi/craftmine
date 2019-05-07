@@ -15,7 +15,7 @@ void TerrainGen::spawn(World& world, Player& player) {
   for (int i = -RENDER_DISTANCE; i <= RENDER_DISTANCE; ++i) {
     for (int k = -RENDER_DISTANCE; k <= RENDER_DISTANCE; ++k) {
       glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
-      world._chunks[curr_index] = {};
+      world._chunks.emplace(curr_index, Chunk());
       chunk(world, curr_index);
     }
   }
