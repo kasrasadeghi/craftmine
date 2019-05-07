@@ -121,12 +121,6 @@ Player player;
 World world(player);
 
 TEST(TerrainGen, spawn_time) {
-  glm::ivec2 chunk {0, 0};
-  world._chunks[chunk] = {};
-  TerrainGen::chunk(world, chunk);
-}
-
-TEST(World, build_time) {
-  std::vector<Instance> instances;
-  world.build(instances);
+  player.setPos(glm::vec3(2000, 100, 2000));
+  TerrainGen::spawn(world, player);
 }

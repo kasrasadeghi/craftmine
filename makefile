@@ -1,5 +1,10 @@
 default: run
 
+rebuild:
+	rm -rf build
+	mkdir build
+	(cd build; cmake -DCMAKE_BUILD_TYPE=Release -DGTEST=FALSE ..; make -j8)
+
 run:
 	[ -d build ] || mkdir build
 	(cd build; cmake -DGTEST=FALSE ..; make -j8)
@@ -26,3 +31,9 @@ gdb: build
 
 clean:
 	rm -rf build
+
+.PHONY: profile
+profile:
+	valgrind --tool=callgrind build/bin/minecraft
+	kcachegrind callgrind.out.*
+	rm -f callgrind.out.*

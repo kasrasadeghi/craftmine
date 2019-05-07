@@ -27,7 +27,6 @@ int main() {
   // RenderWindow window {"Hello World", 1920, 1080};
   RenderWindow window {"Hello World"};
   window.setMousePos(window.width()/2.f, window.height()/2.f);
-  window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   glfwWindowHint(GLFW_SAMPLES, 4);
 
@@ -217,6 +216,9 @@ int main() {
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);  
 
+  // once we're ok to start rendering, disable the mouse
+  window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
   double fps_counter_time = glfwGetTime();
   int framecounter = 0;
   while (window.isOpen()) {
@@ -246,7 +248,7 @@ int main() {
         TerrainGen::chunk(world, chunk_index);
         break;
       }
-      
+
       bool is_surroundings_generated = ([&]() {
         for (int i = -1; i <= 1; ++i)
         for (int k = -1; k <= 1; ++k) {
