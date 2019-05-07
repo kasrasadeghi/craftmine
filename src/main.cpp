@@ -242,14 +242,14 @@ int main() {
 
     for (const glm::ivec2& chunk_index : world._active_set) {
       if (not world.hasChunk(chunk_index)) {
-        world._chunks[chunk_index] = {};
+        world._chunks.emplace(chunk_index, Chunk());
       }
       if (not world.isChunkGenerated(chunk_index)) {
         TerrainGen::chunk(world, chunk_index);
         break;
       }
 
-      bool is_surroundings_generated = ([&]() {
+      auto is_surroundings_generated = [&]() {
         for (int i = -1; i <= 1; ++i)
         for (int k = -1; k <= 1; ++k) {
           glm::ivec2 curr_index = chunk_index + glm::ivec2{i, k};
@@ -264,9 +264,11 @@ int main() {
         }
 
         return true;
-      })();
-	
-      if (not world._chunks.at(chunk_index).built && is_surroundings_generated) {
+      };
+
+      if (world.hasChunk(chunk_index) 
+          && not world._chunks.at(chunk_index).built 
+          && is_surroundings_generated()) {
         world.buildChunk(chunk_index);
         break;
       }
