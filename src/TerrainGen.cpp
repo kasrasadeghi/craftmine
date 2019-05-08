@@ -28,14 +28,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
 
-  auto octave = [](int h, bool v) {
-    using namespace Terrain;
-    if (h < 50 && v) { return STONE; }
-    if (h < 55 && v) { return DIRT; }
-    if (v)           { return GRASS; }
-    if (h < 45 && not v) { return AIR; }
-    return AIR;
-  };
+  /// Base generation pass
 
   auto stretch_octave = [](int s) {
     using namespace Terrain;
@@ -44,7 +37,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     return STONE;
   };
 
-  // FIXME: is everything in this function actually in the same chunk?
+  // FIXME: check: is everything in this function actually in the same chunk?
 
   for (int di = 0; di < CHUNK_SIZE; ++di)
   for (int dk = 0; dk < CHUNK_SIZE; ++dk)
@@ -116,14 +109,8 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
       }
     }
   }
-  
-  struct Tree_ {
-    glm::ivec2 pos;
-    float size; // 0 .. 3
-  };
 
-  // decide where to put trees
-  std::vector<Tree_> trees;
+  /// rand wrappers
 
   auto rand1 = []() -> float {
     return rand()/(float)RAND_MAX;
@@ -134,6 +121,15 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     float theta = rand1() * TWO_PI;
     return glm::vec2 {glm::cos(theta), glm::sin(theta)};
   };
+
+  /// Tree pass
+  struct Tree_ {
+    glm::ivec2 pos;
+    float size; // 0 .. 3
+  };
+
+  // decide where to put trees
+  std::vector<Tree_> trees;
 
   auto curr = glm::ivec2 {1 + rand1() * 4, 1 + rand1() * 4};
   for (int try_number = 0; try_number < 10; ++try_number) 
@@ -172,13 +168,13 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     const auto tree_height = glm::pow(size * 2, 1.2);
     int floof = size * 0.75f;
 
-    for (int i = -floof; i <= floof; ++i) 
-    for (int j = -floof; j <= floof; ++j) 
-    for (int k = -floof; k <= floof; ++k)
+    for (int j = -floof; j <= floof; ++j)
+    for (int i = -floof + (j - floof); i <= floof - (j - floof); ++i) 
+    for (int k = -floof + (j - floof); k <= floof - (j - floof); ++k)
     {
       int y = max_height + tree_height + j;
       if (y < CHUNK_HEIGHT) {
-        world.forceGet(pos.x + i, y, pos.y + k) = Terrain::WATER;
+        world.forceGet(pos.x + i, y, pos.y + k) = Terrain::LEAF;
       }
     }
 
