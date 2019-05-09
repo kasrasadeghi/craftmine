@@ -191,13 +191,15 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     const auto tree_height = glm::pow(size * 2, 1.2);
     int floof = size * 0.75f;
 
-    for (int j = -floof; j <= floof; ++j)
-    for (int i = -floof + (j - floof); i <= floof - (j - floof); ++i) 
-    for (int k = -floof + (j - floof); k <= floof - (j - floof); ++k)
-    {
-      int y = max_height + tree_height + j;
-      if (y < CHUNK_HEIGHT) {
-        world.forceGet(pos.x + i, y, pos.y + k) = Terrain::LEAF;
+    for (int j = -floof; j <= floof; ++j) {
+      int floof_layer_radius = floof - (j - floof);
+      for (int i = -floof_layer_radius; i <= floof_layer_radius; ++i) 
+      for (int k = -floof_layer_radius; k <= floof_layer_radius; ++k)
+      {
+        int y = max_height + tree_height + j;
+        if (y < CHUNK_HEIGHT) {
+          world.forceGet(pos.x + i, y, pos.y + k) = Terrain::LEAF;
+        }
       }
     }
 
