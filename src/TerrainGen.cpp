@@ -122,6 +122,29 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     return glm::vec2 {glm::cos(theta), glm::sin(theta)};
   };
 
+  /// Cave generation pass
+
+  // randomly pick a point in the chunk
+  auto point = glm::vec3(rand1() * 15, rand1() * 15, rand1() * 128);
+
+  // map some perlin segments
+  constexpr int point_count = 10;
+  std::array<glm::vec3, point_count> cave_points {};
+  cave_points[0] = point;
+  for (int i = 1; i < point_count; ++i) {
+    auto prev = cave_points[i - 1];
+    cave_points[i] = prev + 3 * perlin(prev.x, prev.y, prev.z);
+  }
+
+  auto carve_ball = [](){
+
+  };
+
+  // // carve out cave
+  // for (int i = 0; i < point_count; ++i) {
+    
+  // }
+
   /// Tree pass
   struct Tree_ {
     glm::ivec2 pos;

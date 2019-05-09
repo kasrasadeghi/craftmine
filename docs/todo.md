@@ -21,6 +21,7 @@ investigate shadow volumes
 draw player
 player shadow
 investigate making glad a static lib
+investigate making terrain generation seed-based
 
 premake:
 advanced terrain gen - air cutoff with gradient, cave digouts
