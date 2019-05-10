@@ -4,8 +4,10 @@
 #include "Perlin.h"
 #include "Terrain.h"
 
-#include <iostream>
+#include <glm/gtx/hash.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <iostream>
+#include <unordered_set>
 
 // FIXME: is every chunk actually only loaded once?
 
@@ -93,7 +95,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     int stretch = 0;
     bool seen = false;
     for (int j = 127; j >= 0; --j) {
-      if (column[j]) {
+      if (column[j] || true) {
         seen = true;
         world(i, j, k) = stretch_octave(stretch);
         stretch ++;
@@ -125,7 +127,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   /// Cave generation pass
 
   // randomly pick a point in the chunk
-  auto point = glm::vec3(rand1() * 15, rand1() * 15, rand1() * 128);
+  auto point = glm::vec3(bi + perlin(bi/100.f, bk/100.f) * 15, perlin(bk/100.f, bi/100.f) * 128, bk + perlin(bi/100.f, bk/100.f, (bi ^ bk)/100.f) * 15);
 
   // map some perlin segments
   constexpr int point_count = 10;
@@ -133,17 +135,58 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   cave_points[0] = point;
   for (int i = 1; i < point_count; ++i) {
     auto prev = cave_points[i - 1];
-    cave_points[i] = prev + 3 * perlin(prev.x, prev.y, prev.z);
+    cave_points[i] = prev + glm::vec3(3) 
+        * glm::vec3(perlin(prev.x, prev.y, prev.z), perlin(prev.z, prev.x, prev.y), perlin(prev.y, prev.z, prev.x));
   }
 
-  auto carve_ball = [](){
+  std::unordered_set<glm::ivec3> carve_voxel_set;
+  auto carve_ball = [&](glm::vec3 curr_pos, std::unordered_set<glm::ivec3>& carve_set) {
+    std::cout << glm::to_string(curr_pos) << std::endl;
+    
+    constexpr int sphere_layer_count = 5;
+    constexpr int sphere_radius = sphere_layer_count / 2;
+    constexpr int sphere_radii[] = { 1, 2, 3, 2, 1 };
+    for (int dj = 0; dj < sphere_layer_count; ++dj) {
+      // relative j, i, k
+      int rj = dj - sphere_radius;
+      for (int ri = -sphere_radii[dj]; ri < sphere_radii[dj]; ++ri)
+      for (int rk = -sphere_radii[dj]; rk < sphere_radii[dj]; ++rk) {
+        glm::ivec3 current_voxel = glm::ivec3(curr_pos) + glm::ivec3(ri, rj, rk);
+        carve_set.emplace(current_voxel);
+      }
+    }
 
+    // glm::ivec3 voxel = curr_pos;
+
+    // for (int i = 0; i < 5; ++i) {
+    //   carve_voxel_set.emplace(voxel.x, voxel.y + i, voxel.z);
+    // }
   };
 
-  // // carve out cave
-  // for (int i = 0; i < point_count; ++i) {
-    
+  // carve out cave
+  // for (int i = 0; i < point_count - 1; ++i) {
+
+  //   // interpolate between point 0 and point 1
+  //   for (float d = 0; d < 1; d += 0.1) {
+  //     glm::vec3 curr_pos = glm::mix(cave_points[i], cave_points[i + 1], d);
+  //     carve_ball(curr_pos, carve_voxel_set);
+  //   }
   // }
+
+  carve_ball(cave_points[0], carve_voxel_set);
+  carve_ball(cave_points[1], carve_voxel_set);
+  carve_ball(cave_points[2], carve_voxel_set);
+  carve_ball(cave_points[3], carve_voxel_set);
+
+  // carve_ball({bi + 6, 50, bk + 6}, carve_voxel_set);
+  std::cout << std::endl;
+
+  for (glm::ivec3 voxel : carve_voxel_set) {
+    if (voxel.x >= bi && voxel.y >= 0 && voxel.z >= bk
+        && voxel.x < bi + CHUNK_SIZE && voxel.y < CHUNK_HEIGHT && voxel.z < bk + CHUNK_SIZE) {
+      world(voxel.x, voxel.y, voxel.z) = 0;
+    }
+  }
 
   /// Tree pass
   struct Tree_ {
