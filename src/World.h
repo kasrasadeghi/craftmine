@@ -86,13 +86,6 @@ struct Chunk {
       }
     };
 
-    auto isAir = [&](int i, int j, int k) -> bool {
-      if (i > 15 || j > 15 || k > 15 || i < 0 || j < 0 || k < 0) {
-        return worldIsAir(offset.x + i, j, offset.y + k);
-      }
-      return data[i][j][k] == 0;
-    };
-
     for (int i = 0; i < CHUNK_SIZE; ++i)
     for (int j = 0; j < CHUNK_HEIGHT; ++j)
     for (int k = 0; k < CHUNK_SIZE; ++k) 
