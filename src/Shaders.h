@@ -353,8 +353,8 @@ void main()
   fragment_color = height_atten(fragment_color);
 	
   fragment_color = menger_color(fragment_color);
-  // if (sq_texture_index == WATER) fragment_color.w = 0.3; //FIXME: water should be see-through
-  if (sq_texture_index == WATER) fragment_color.w = 1;
+  if (sq_texture_index == WATER) fragment_color =vec4(.75f,.75f,.75f,1) * vec4(0.05f,0.2f,.7f,.6f); //FIXME: water should be see-through
+  // if (sq_texture_index == WATER) fragment_color.w = 1;
   else fragment_color.w = 1;
 
   if (light_space_position.w != 0) {

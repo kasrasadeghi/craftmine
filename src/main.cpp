@@ -103,14 +103,17 @@ int main() {
   TerrainGen::spawn(world, player);
 
   std::vector<Instance> instances;
-  world.build(instances);
+  std::vector<Instance> water_instances;
 
-  GLuint worldVAO;
+  world.build(instances);
+  world.build_water(water_instances);
+
+  GLuint worldVAO, waterVAO;
   struct VBO_ {
     GLuint vertex_buffer;
     GLuint instances_buffer;
     GLuint index_buffer;
-  } VBO;
+  } VBO, water_VBO;
 
 	glGenVertexArrays(1, &worldVAO);
 	glBindVertexArray(worldVAO);
@@ -140,6 +143,35 @@ int main() {
     glVertexAttribIPointer(   3, 1, GL_UNSIGNED_INT, sizeof(Instance), (void*)(sizeof(glm::vec3) + sizeof(GLuint)));
     glVertexAttribDivisor(    3, 1);
 
+  // WATER VBO
+  glGenVertexArrays(1, &waterVAO);
+	glBindVertexArray(waterVAO);
+	glGenBuffers(3, (GLuint*)(&water_VBO));
+
+	// Setup element array buffer.
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, water_VBO.index_buffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::uvec3) * faces.size(), faces.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, water_VBO.vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(    0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+  
+  glBindBuffer(GL_ARRAY_BUFFER, water_VBO.instances_buffer);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * water_instances.size(), water_instances.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(    1, 3, GL_FLOAT, GL_FALSE, sizeof(Instance), (void*)0);
+    glVertexAttribDivisor(    1, 1);
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(   2, 1, GL_UNSIGNED_INT, sizeof(Instance), (void*)(sizeof(glm::vec3)));
+    glVertexAttribDivisor(    2, 1);
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(   3, 1, GL_UNSIGNED_INT, sizeof(Instance), (void*)(sizeof(glm::vec3) + sizeof(GLuint)));
+    glVertexAttribDivisor(    3, 1);
+
   ShaderSource program_sources;
   program_sources.vertex = world_vertex_shader;
   program_sources.geometry = world_geometry_shader;
@@ -156,7 +188,7 @@ int main() {
     GLint wireframe = 0;
     GLint bases = 0;
     GLint offs = 0;
-	} uniform;
+	} uniform, water_unifrom;
 
   uniform.projection   = glGetUniformLocation(program_id, "projection");
   uniform.view         = glGetUniformLocation(program_id, "view");
@@ -170,6 +202,23 @@ int main() {
   std::vector<glm::vec4> off_colors  (10, glm::vec4(0, 0, 0, 1));
 
   Terrain::setColors(base_colors, off_colors);
+
+  // CREATE WATER PORGRAM
+  ShaderSource water_program_sources;
+  water_program_sources.vertex   = world_vertex_shader;
+  water_program_sources.geometry = world_geometry_shader;
+  water_program_sources.fragment = world_fragment_shader;
+
+  GLuint water_program_id = CreateProgram(water_program_sources, {"vertex_position", "instance_offset", "direction", "texture_index"});
+  glUseProgram(water_program_id);
+
+  water_unifrom.projection = glGetUniformLocation(program_id, "projection");
+  water_unifrom.view              = glGetUniformLocation(program_id, "view");
+  water_unifrom.light_space       = glGetUniformLocation(program_id, "light_space");
+  water_unifrom.light_pos         = glGetUniformLocation(program_id, "light_position");
+
+
+  glUseProgram(program_id);
 
   auto update_bases = [&](){
     glUniform4fv(uniform.bases, 10, (const GLfloat*)base_colors.data());
@@ -222,13 +271,15 @@ int main() {
   double fps_counter_time = glfwGetTime();
   int framecounter = 0;
   while (window.isOpen()) {
+    glUseProgram(program_id);
+
     framecounter ++;
     // glfwGetFramebufferSize(window, &window_width, &window_height);
     if (window.getKey(GLFW_KEY_W)) { player.move(2, world);; }
     if (window.getKey(GLFW_KEY_S)) { player.move(3, world); }
     if (window.getKey(GLFW_KEY_A)) { player.move(0, world); }
     if (window.getKey(GLFW_KEY_D)) { player.move(1, world); }
-    if (window.getKey(GLFW_KEY_UP) || window.getKey(GLFW_KEY_SPACE)) { player.jump(); }
+    if (window.getKey(GLFW_KEY_UP)   || window.getKey(GLFW_KEY_SPACE)) { player.jump(); }
     if (window.getKey(GLFW_KEY_DOWN) || window.getKey(GLFW_KEY_LEFT_SHIFT)) { player.moveDown(); }
     
     glBindVertexArray(worldVAO);
@@ -281,7 +332,6 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
 
-
     float aspect = static_cast<float>(window.width()) / window.height();
     glm::mat4 projection_matrix(0);
     glm::mat4 view_matrix(0);
@@ -294,6 +344,7 @@ int main() {
     glClearColor(0.5, 0.5, 0.5, 1); // Sky color
     glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+    
 
     if (SHADOWS) {
       /// Render to Shadow Texture
@@ -345,9 +396,25 @@ int main() {
 
     glBindTexture(GL_TEXTURE_2D, depthMapTex);
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
-    
 
-    /// Render Text
+
+    glBindVertexArray(waterVAO);
+    
+    glUseProgram(water_program_id);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    glUniformMatrix4fv(uniform.projection, 1, GL_FALSE, &projection_matrix[0][0]);
+    glUniformMatrix4fv(uniform.view,       1, GL_FALSE, &view_matrix[0][0]);
+    glUniformMatrix4fv(uniform.light_space,1, GL_FALSE, &light_space_matrix[0][0]);
+
+    world.build_water(water_instances);
+    glBindBuffer(GL_ARRAY_BUFFER, water_VBO.instances_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * water_instances.size(), water_instances.data(), GL_STATIC_DRAW);
+
+    glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, water_instances.size());
+    
+    /// Render Text 
     tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
     tr.renderText((player.collided(world) ? "" : "not ") + std::string("collided"), 100, 230, 1, glm::vec4(1));
     tr.renderText("player pos:   " + glm::to_string(player.feet()), 200, 50, 1, glm::vec4(1));
