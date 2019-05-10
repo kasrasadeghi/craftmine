@@ -11,6 +11,8 @@
 
 // FIXME: is every chunk actually only loaded once?
 
+std::unordered_set<glm::ivec3> cave_voxels_to_be_carved;
+
 void TerrainGen::spawn(World& world, Player& player) {
   auto chunk_index = World::toChunk(player.blockPosition());
 
@@ -95,7 +97,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     int stretch = 0;
     bool seen = false;
     for (int j = 127; j >= 0; --j) {
-      if (column[j] || true) {
+      if (column[j]) {
         seen = true;
         world(i, j, k) = stretch_octave(stretch);
         stretch ++;
@@ -127,47 +129,68 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   /// Cave generation pass
 
   // randomly pick a point in the chunk
-  auto point = glm::vec3(bi + perlin(bi/100.f, bk/100.f) * 15, perlin(bk/100.f, bi/100.f) * 128, bk + perlin(bi/100.f, bk/100.f, (bi ^ bk)/100.f) * 15);
+  if (perlin(bi/100.f, bk/100.f) < 0.2) {
 
-  // map some perlin segments
-  constexpr int point_count = 10;
-  std::array<glm::vec3, point_count> cave_points {};
-  cave_points[0] = point;
-  for (int i = 1; i < point_count; ++i) {
-    auto prev = cave_points[i - 1];
-    cave_points[i] = prev + glm::vec3(3) 
-        * glm::vec3(perlin(prev.x, prev.y, prev.z), perlin(prev.z, prev.x, prev.y), perlin(prev.y, prev.z, prev.x));
-  }
+    auto point = glm::vec3(bi + perlin(bi/100.f, bk/100.f) * 15, perlin(bk/100.f, bi/100.f) * 128, bk + perlin(bi/100.f, bk/100.f, (bi ^ bk)/100.f) * 15);
 
-  std::unordered_set<glm::ivec3> carve_voxel_set;
-  auto carve_ball = [](glm::vec3 curr_pos, std::unordered_set<glm::ivec3>& carve_set) {
-    
-    constexpr int sphere_radius = 2;
-    for (int ri = -sphere_radius; ri < sphere_radius; ++ri)
-    for (int rj = -sphere_radius; rj < sphere_radius; ++rj)
-    for (int rk = -sphere_radius; rk < sphere_radius; ++rk)
-    {
-      glm::ivec3 current_voxel = glm::ivec3(curr_pos) + glm::ivec3(ri, rj, rk);
-      if (glm::distance(glm::vec3(current_voxel), curr_pos) < sphere_radius) {
-        carve_set.emplace(current_voxel);
+    // map some perlin segments
+    constexpr int point_count = 10;
+    std::array<glm::vec3, point_count> cave_points {};
+    cave_points[0] = point;
+    for (int i = 1; i < point_count; ++i) {
+      auto prev = cave_points[i - 1];
+      cave_points[i] = prev + glm::vec3(3) 
+          * glm::vec3(perlin(prev.x, prev.y, prev.z), perlin(prev.z, prev.x, prev.y), perlin(prev.y, prev.z, prev.x));
+    }
+
+    std::unordered_set<glm::ivec3> carve_voxel_set;
+    auto carve_ball = [](glm::vec3 curr_pos, std::unordered_set<glm::ivec3>& carve_set) {
+      
+      constexpr int sphere_radius = 5;
+      for (int ri = -sphere_radius; ri < sphere_radius; ++ri)
+      for (int rj = -sphere_radius; rj < sphere_radius; ++rj)
+      for (int rk = -sphere_radius; rk < sphere_radius; ++rk)
+      {
+        glm::ivec3 current_voxel = glm::ivec3(curr_pos) + glm::ivec3(ri, rj, rk);
+        if (glm::distance(glm::vec3(current_voxel), curr_pos) < sphere_radius) {
+          carve_set.emplace(current_voxel);
+        }
+      }
+    };
+
+    // carve out cave
+    for (int i = 0; i < point_count - 1; ++i) {
+
+      // interpolate between point 0 and point 1
+      for (float d = 0; d < 1; d += 0.3) {
+        glm::vec3 curr_pos = glm::mix(cave_points[i], cave_points[i + 1], d);
+        carve_ball(curr_pos, carve_voxel_set);
       }
     }
-  };
 
-  // carve out cave
-  for (int i = 0; i < point_count - 1; ++i) {
-
-    // interpolate between point 0 and point 1
-    for (float d = 0; d < 1; d += 0.3) {
-      glm::vec3 curr_pos = glm::mix(cave_points[i], cave_points[i + 1], d);
-      carve_ball(curr_pos, carve_voxel_set);
+    for (glm::ivec3 voxel : carve_voxel_set) {
+      if (voxel.x >= bi && voxel.y >= 0 && voxel.z >= bk
+          && voxel.x < bi + CHUNK_SIZE && voxel.y < CHUNK_HEIGHT && voxel.z < bk + CHUNK_SIZE) {
+        auto& block = world(voxel.x, voxel.y, voxel.z);
+        if (block != Terrain::WATER) {
+          block = Terrain::AIR;
+        }
+      } else {
+        cave_voxels_to_be_carved.emplace(voxel);
+      }
     }
   }
 
-  for (glm::ivec3 voxel : carve_voxel_set) {
-    if (voxel.x >= bi && voxel.y >= 0 && voxel.z >= bk
-        && voxel.x < bi + CHUNK_SIZE && voxel.y < CHUNK_HEIGHT && voxel.z < bk + CHUNK_SIZE) {
-      world(voxel.x, voxel.y, voxel.z) = 0;
+  world._chunks[chunk_index].generated = true;
+
+  // neighboring caves
+  for (glm::ivec3 voxel : cave_voxels_to_be_carved) {
+    glm::ivec2 voxel_chunk_index = World::toChunk(voxel);
+    if (world.hasChunk(voxel_chunk_index) && world._chunks.at(voxel_chunk_index).generated) {
+      auto& block = world(voxel.x, voxel.y, voxel.z);
+      if (block != Terrain::WATER) {
+        block = Terrain::AIR;
+      }
     }
   }
 
@@ -241,5 +264,4 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     plant_tree(tree.pos, tree.size);
   }
 
-  world._chunks[chunk_index].generated = true;
 }

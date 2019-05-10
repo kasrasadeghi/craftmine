@@ -5,6 +5,12 @@ release:
 	mkdir build
 	(cd build; cmake -DCMAKE_BUILD_TYPE=Release -DGTEST=FALSE ..; make -j8)
 
+.PHONY: build
+build:
+	rm -rf build
+	mkdir build
+	(cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DGTEST=FALSE ..; make -j8)
+
 run:
 	[ -d build ] || mkdir build
 	(cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DGTEST=FALSE ..; make -j8)
