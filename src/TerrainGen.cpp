@@ -140,46 +140,29 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   }
 
   std::unordered_set<glm::ivec3> carve_voxel_set;
-  auto carve_ball = [&](glm::vec3 curr_pos, std::unordered_set<glm::ivec3>& carve_set) {
-    std::cout << glm::to_string(curr_pos) << std::endl;
+  auto carve_ball = [](glm::vec3 curr_pos, std::unordered_set<glm::ivec3>& carve_set) {
     
-    constexpr int sphere_layer_count = 5;
-    constexpr int sphere_radius = sphere_layer_count / 2;
-    constexpr int sphere_radii[] = { 1, 2, 3, 2, 1 };
-    for (int dj = 0; dj < sphere_layer_count; ++dj) {
-      // relative j, i, k
-      int rj = dj - sphere_radius;
-      for (int ri = -sphere_radii[dj]; ri < sphere_radii[dj]; ++ri)
-      for (int rk = -sphere_radii[dj]; rk < sphere_radii[dj]; ++rk) {
-        glm::ivec3 current_voxel = glm::ivec3(curr_pos) + glm::ivec3(ri, rj, rk);
+    constexpr int sphere_radius = 2;
+    for (int ri = -sphere_radius; ri < sphere_radius; ++ri)
+    for (int rj = -sphere_radius; rj < sphere_radius; ++rj)
+    for (int rk = -sphere_radius; rk < sphere_radius; ++rk)
+    {
+      glm::ivec3 current_voxel = glm::ivec3(curr_pos) + glm::ivec3(ri, rj, rk);
+      if (glm::distance(glm::vec3(current_voxel), curr_pos) < sphere_radius) {
         carve_set.emplace(current_voxel);
       }
     }
-
-    // glm::ivec3 voxel = curr_pos;
-
-    // for (int i = 0; i < 5; ++i) {
-    //   carve_voxel_set.emplace(voxel.x, voxel.y + i, voxel.z);
-    // }
   };
 
   // carve out cave
-  // for (int i = 0; i < point_count - 1; ++i) {
+  for (int i = 0; i < point_count - 1; ++i) {
 
-  //   // interpolate between point 0 and point 1
-  //   for (float d = 0; d < 1; d += 0.1) {
-  //     glm::vec3 curr_pos = glm::mix(cave_points[i], cave_points[i + 1], d);
-  //     carve_ball(curr_pos, carve_voxel_set);
-  //   }
-  // }
-
-  carve_ball(cave_points[0], carve_voxel_set);
-  carve_ball(cave_points[1], carve_voxel_set);
-  carve_ball(cave_points[2], carve_voxel_set);
-  carve_ball(cave_points[3], carve_voxel_set);
-
-  // carve_ball({bi + 6, 50, bk + 6}, carve_voxel_set);
-  std::cout << std::endl;
+    // interpolate between point 0 and point 1
+    for (float d = 0; d < 1; d += 0.3) {
+      glm::vec3 curr_pos = glm::mix(cave_points[i], cave_points[i + 1], d);
+      carve_ball(curr_pos, carve_voxel_set);
+    }
+  }
 
   for (glm::ivec3 voxel : carve_voxel_set) {
     if (voxel.x >= bi && voxel.y >= 0 && voxel.z >= bk
