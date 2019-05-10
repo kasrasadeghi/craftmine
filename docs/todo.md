@@ -33,8 +33,9 @@ final:
 water transparency
 downsample with intelligent interpolation
 neighboring chunks on break refresh a lot
-caves
+make caves not iterate through every previous cave to run
 > DONE
+caves
 trees
 trees mess up friends that have already instanced
 incremental chunk generation
