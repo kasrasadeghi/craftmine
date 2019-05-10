@@ -50,7 +50,6 @@ struct Chunk {
   void load_water(std::vector<Instance>& instances) {
     assert (generated);
     assert (built);
-    assert (not _water_instances.empty());
     instances.reserve(instances.size() + _water_instances.size());
     std::copy(_water_instances.begin(), _water_instances.end(), std::back_inserter(instances));
   }
