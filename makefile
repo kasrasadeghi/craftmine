@@ -1,4 +1,4 @@
-default: run
+default: fast
 
 release:
 	rm -rf build
