@@ -6,5 +6,5 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 # Flags
 #set(CMAKE_CXX_FLAGS "--std=c++14 -g -fmax-errors=1")
-set(CMAKE_CXX_FLAGS "--std=c++17 -g")
+set(CMAKE_CXX_FLAGS "--std=c++14 -g")
 
