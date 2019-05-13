@@ -1,0 +1,147 @@
+<html>
+<head>
+   <!-- Compiled and minified CSS -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+   <!-- Compiled and minified JavaScript -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <style>
+
+    .category {
+      border: 1px solid black;
+      margin-bottom: 10;
+    }
+    .category>h3 {
+      margin-left: 0.5%;
+      margin-block-start: 0;
+      margin-block-end: 0;
+    }
+    .todo {
+      margin-left: 2%;
+      margin-top: 0.5%;
+      margin-bottom: 0.5%;
+    }
+
+    html {
+      padding-bottom: 90%;
+    }
+  </style>
+
+  <script>
+
+  data = {
+    misc:
+    `negative world chunks
+    chunk load and unload from disk
+    only instance gen for chunks that have neighbors
+    make text renderer draw on near plane
+    fix blocks placed on chunk boundary issues`,
+    features:
+    `investigate shadow volumes
+    make terrain generation seed-based
+    anti aliasing
+    texture interpolation instead of color interpolation
+    inventory
+    day night cycle
+    draw player
+    player shadow
+    rivers`,
+    improvements_and_user_ex:
+    `investigate making glad a static lib
+    make better fog
+    handle resizes
+    runescape less strong
+    extreme hill only sometimes
+    neighboring chunks on break refresh a lot`,
+    optimization:
+    `-> async
+    16^3 chunks instead of 16^2 x 128 chunks?
+    make transparency cache for chunk instance building?
+    make orthographic matrix depend on render distance
+    make shadow texture size depend on render distance
+    mipmap shadows
+    downsample with intelligent interpolation
+    make caves not iterate through every previous cave to run`,
+    async:
+    `instance gen
+    terrain gen
+    separate terrain gen into individual passes`,
+    bugs:
+    `need to put a mutex around {the body of the worker thread} and {the instance building}. chunk's backing store might be resized`,
+  };
+
+  let patch = (node, attrs) => {
+    for (let field in attrs) {
+      node.setAttribute(field, attrs[field]);
+    }
+  };
+
+  let selected_node = null;
+
+  function dragstart(ev) {
+    let node = ev.target;
+    selected_node = node;
+    patch(selected_node, {style: 'color: grey'});
+    ev.dataTransfer.setData('text', ev.target.innerText);
+  };
+
+  function allowDrop(ev) {
+    ev.preventDefault();
+  };
+
+  function drop(ev, category_name) {
+    ev.preventDefault();
+    ev.target.after(selected_node);
+    patch(selected_node, {style: 'color: black'});
+    selected_node = null;
+  };
+
+  window.onload = () => {
+
+  
+
+  let elem = (tagname, content = '', attrs, children) => {
+    let node = document.createElement(tagname);
+    node.append(content);
+    patch(node, attrs);
+    if (children) {
+      for (let child of children) {
+        node.appendChild(child);
+      }
+    }
+    return node;
+  };
+
+  body = document.getElementById('todos');
+  for (let name in data) {
+    let node = 
+      elem('ul', '', {class: 'category collection', ondrop:`drop(event, "${name}")`, ondragover:'allowDrop(event)'}, 
+        [elem('h3', name + ':', {}, 
+          [elem('div', '', {class: 'divider'})])
+        ]);
+
+    for (let todo_text of data[name].split('\n').map((l) => l.trim())) {
+      let todo = elem('li', todo_text, {class: 'todo collection-item', draggable: 'true', ondragstart: 'dragstart(event)'}); 
+      node.appendChild(todo);
+    }
+
+    body.appendChild(node);
+  }
+
+  };
+  </script>
+</head>
+<body>
+  <div class='container'>
+    <nav>
+      <div class="nav-wrapper white">
+        <a href="#" class="right brand-logo" style='color: #444'>Todo</a>
+        <ul id="nav-mobile" class="left hide-on-med-and-down">
+          <li><a href='#' class='blue-grey lighten-2'>store</a></li>
+        </ul>
+      </div>
+    </nav>
+    <div id='todos'></div>
+  </div>
+</body>
+</html>
