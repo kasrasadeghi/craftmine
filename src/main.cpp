@@ -8,75 +8,17 @@
 #include "ShaderUtil.h"
 #include "World.h"
 #include "Terrain.h"
+#include "Str.h"
 
 #include <iostream>
 #include <vector>
-#include <sstream>
 
 #include <GLFW/glfw3.h>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
 #include <future>
 
 constexpr bool SHADOWS = true;
-
-// TODO: use concepts in C++20
-// thanks to https://github.com/pycpp/sfinae
-
-// decltype(decl_lvalue<T>) gives an l-value version of T
-// operators need an l-value on the left side
-template <typename T>
-std::add_lvalue_reference_t<T> decl_lvalue() noexcept;
-
-template <typename T, typename U = T>
-struct has_left_shift {
-  protected:
-    template <typename T1 = T, typename U1 = U>
-    static std::true_type test(decltype(decl_lvalue<T1>() << std::declval<U1>));
-
-    template <typename T1 = T, typename U1 = U>
-    static std::false_type test(...);
-  
-  public:
-    enum { value = decltype(test<T, U>(decl_lvalue<int>()))::value };
-};
-
-template <typename T>
-struct has_glm_to_string {
-  protected:
-    template <typename T1 = T>
-    static char& test(decltype(glm::to_string(decl_lvalue<T1>())));
-
-    template <typename T1 = T>
-    static long& test(...);
-  
-  public:
-    enum { value = sizeof(test<T>(decl_lvalue<int>())) == sizeof(char) };
-};
-
-template <
-    typename T, 
-    typename = std::enable_if<has_left_shift<std::ostream, T>::value>
-    >
-std::string str(T o) {
-  std::stringstream i;
-  i << o; 
-  return i.str();
-}
-
-// template <
-//   typename T,
-//   typename = std::enable_if<has_glm_to_string<T>::value>
-//   >
-// std::string str(T o) {
-//   return glm::to_string(o);
-// }
-
-template <>
-std::string str<const char*>(const char* o) {
-  return std::string(o);
-}
 
 int main() {
   srand(time(NULL));
@@ -469,9 +411,9 @@ int main() {
     /// Render Text 
     tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
     tr.renderText((player.collided(world) ? "" : "not ") + std::string("collided"), 100, 230, 1, glm::vec4(1));
-    tr.renderText("player pos:   " + glm::to_string(player.feet()), 200, 50, 1, glm::vec4(1));
-    tr.renderText("player block: " + glm::to_string(player.blockPosition()), 200, 80, 1, glm::vec4(1));
-    tr.renderText("chunk pos:    " + glm::to_string(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
+    tr.renderText("player pos:   " + str(player.feet()), 200, 50, 1, glm::vec4(1));
+    tr.renderText("player block: " + str(player.blockPosition()), 200, 80, 1, glm::vec4(1));
+    tr.renderText("chunk pos:    " + str(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
     tr.renderText("chunk exists? " + str(world.hasChunk(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 140, 1, glm::vec4(1));
     tr.renderText("chunk genned? " + str(world.isChunkGenerated(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 170, 1, glm::vec4(1));
     tr.renderText("player block? " + Terrain::str(player._held_block), 100, window.height() - 100, 1, glm::vec4(1));
