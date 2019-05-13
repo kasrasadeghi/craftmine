@@ -1,5 +1,4 @@
-class project:
-> DONE
+minecraft DONE:
 3d noise texture
 good shadow mapping
 slightly blurred shadow mapping
@@ -20,3 +19,15 @@ render box
 investigate renderwindow non fullscreen
 build with opengl
 build
+
+Craftmine final DONE:
+advanced terrain gen - air cutoff with gradient, cave digouts
+water transparency
+caves
+trees
+trees mess up friends that have already instanced
+incremental chunk generation
+incremental chunk building
+fix player (collision?) crashing outside of chunk height bounds
+stretch octaves
+3d perlin

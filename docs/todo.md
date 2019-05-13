@@ -23,26 +23,17 @@ player shadow
 investigate making glad a static lib
 investigate making terrain generation seed-based
 
-premake:
-advanced terrain gen - air cutoff with gradient, cave digouts
-runescape less strong
-extreme hill only sometimes
+features:
 rivers
 
-final:
-downsample with intelligent interpolation
+user-experience:
+runescape less strong
+extreme hill only sometimes
 neighboring chunks on break refresh a lot
+
+optimization:
+downsample with intelligent interpolation
 make caves not iterate through every previous cave to run
-> DONE
-water transparency
-caves
-trees
-trees mess up friends that have already instanced
-incremental chunk generation
-incremental chunk building
-fix player (collision?) crashing outside of chunk height bounds
-stretch octaves
-3d perlin
 
 bugs:
 need to put a mutex around {the body of the worker thread} and {the instance building}. chunk's backing store might be resized
