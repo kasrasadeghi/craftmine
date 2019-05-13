@@ -410,7 +410,7 @@ int main() {
     
     /// Render Text 
     tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
-    tr.renderText((player.collided(world) ? "" : "not ") + std::string("collided"), 100, 230, 1, glm::vec4(1));
+    tr.renderText((player.collided(world) ? "" : "not ") + str("collided"), 100, 230, 1, glm::vec4(1));
     tr.renderText("player pos:   " + str(player.feet()), 200, 50, 1, glm::vec4(1));
     tr.renderText("player block: " + str(player.blockPosition()), 200, 80, 1, glm::vec4(1));
     tr.renderText("chunk pos:    " + str(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
