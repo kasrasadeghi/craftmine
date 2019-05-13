@@ -112,13 +112,13 @@ void Player::handleMouse(int button, int action, int mods, World& world) {
 
     if (action_taken) {
       glm::ivec2 chunk = World::toChunk(block);
-      world._chunks[chunk].built = false;
+      world._chunks.at(chunk)->built = false;
 
       //TODO figure out chunks that need rerendering intelligently
-      world._chunks[chunk + glm::ivec2(1, 0)].built = false;
-      world._chunks[chunk + glm::ivec2(-1, 0)].built = false;
-      world._chunks[chunk + glm::ivec2(0, 1)].built = false;
-      world._chunks[chunk + glm::ivec2(0, -1)].built = false;
+      world._chunks.at(chunk + glm::ivec2(1, 0) )->built = false;
+      world._chunks.at(chunk + glm::ivec2(-1, 0))->built = false;
+      world._chunks.at(chunk + glm::ivec2(0, 1) )->built = false;
+      world._chunks.at(chunk + glm::ivec2(0, -1))->built = false;
     }
     // world._might_need_building = true;
   }

@@ -45,13 +45,13 @@ void World::build(std::vector<Instance>& instances) {
         return false;
       }
 
-      const Chunk& chunk = _chunks.at(chunk_index);
+      const Chunk* chunk = _chunks.at(chunk_index);
 
-      if (not chunk.generated) {
+      if (not chunk->generated) {
         return false;
       }
 
-      if (not chunk.built) {
+      if (not chunk->built) {
         return false;
       }
 
@@ -60,7 +60,7 @@ void World::build(std::vector<Instance>& instances) {
 
   // build the chunks that already have instances
   for (const auto& chunk_index : already_built_set) {
-    _chunks.at(chunk_index).load(instances);
+    _chunks.at(chunk_index)->load(instances);
   }
 
   // if (not incomplete) {
@@ -84,13 +84,13 @@ void World::build_water(std::vector<Instance>& instances) {
         return false;
       }
 
-      const Chunk& chunk = _chunks.at(chunk_index);
+      const Chunk* chunk = _chunks.at(chunk_index);
 
-      if (not chunk.generated) {
+      if (not chunk->generated) {
         return false;
       }
 
-      if (not chunk.built) {
+      if (not chunk->built) {
         return false;
       }
 
@@ -99,7 +99,7 @@ void World::build_water(std::vector<Instance>& instances) {
 
   // build the chunks that already have instances
   for (const auto& chunk_index : already_built_set) {
-    _chunks.at(chunk_index).load_water(instances);
+    _chunks.at(chunk_index)->load_water(instances);
   }
 
   // if (not incomplete) {
@@ -113,8 +113,8 @@ void World::build_water(std::vector<Instance>& instances) {
 
 void World::buildChunk(glm::ivec2 chunk_index) {
   assert (hasChunk(chunk_index));
-  assert (_chunks.at(chunk_index).generated);
-  _chunks.at(chunk_index).build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, 
+  assert (_chunks.at(chunk_index)->generated);
+  _chunks.at(chunk_index)->build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, 
       [&](int i, int j, int k){return isAir(i, j, k);}, 
       [&](int i, int j, int k){return isWater(i, j, k);});
 }

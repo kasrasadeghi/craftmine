@@ -21,7 +21,7 @@ void TerrainGen::spawn(World& world, Player& player) {
   for (int i = -RENDER_DISTANCE; i <= RENDER_DISTANCE; ++i) {
     for (int k = -RENDER_DISTANCE; k <= RENDER_DISTANCE; ++k) {
       glm::ivec2 curr_index = chunk_index + glm::ivec2(i, k);
-      world._chunks.emplace(curr_index, Chunk());
+      world._chunks.emplace(curr_index, new Chunk());
       chunk(world, curr_index);
     }
   }
@@ -29,7 +29,7 @@ void TerrainGen::spawn(World& world, Player& player) {
 
 void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   assert (world.hasChunk(chunk_index));
-  assert (not world._chunks.at(chunk_index).generated);
+  assert (not world._chunks.at(chunk_index)->generated);
 
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
@@ -168,12 +168,12 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     }
   }
 
-  world._chunks[chunk_index].generated = true;
+  world._chunks.at(chunk_index)->generated = true;
 
   // neighboring caves
   for (glm::ivec3 voxel : cave_voxels_to_be_carved) {
     glm::ivec2 voxel_chunk_index = World::toChunk(voxel);
-    if (world.hasChunk(voxel_chunk_index) && world._chunks.at(voxel_chunk_index).generated) {
+    if (world.hasChunk(voxel_chunk_index) && world._chunks.at(voxel_chunk_index)->generated) {
       auto& block = world(voxel.x, voxel.y, voxel.z);
       if (block != Terrain::WATER) {
         block = Terrain::AIR;

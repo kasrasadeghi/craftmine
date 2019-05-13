@@ -132,7 +132,7 @@ struct Chunk {
 struct Player;
 
 struct World {
-  std::unordered_map<glm::ivec2, Chunk> _chunks;
+  std::unordered_map<glm::ivec2, Chunk*> _chunks;
   std::vector<glm::ivec2> _active_set; // invariant: in increasing distance from the player
   glm::ivec2 _player_chunk_index;
 
@@ -149,7 +149,7 @@ struct World {
     int dk = good_mod(k, CHUNK_SIZE);
     auto chunk_index = toChunk({i, j, k});
     assert (hasChunk(chunk_index));
-    return _chunks.at(chunk_index).data.at(di).at(j).at(dk);
+    return _chunks.at(chunk_index)->data.at(di).at(j).at(dk);
   }
 
   u_char& forceGet(int i, int j, int k) {
@@ -157,8 +157,11 @@ struct World {
 
     int di = good_mod(i, CHUNK_SIZE);
     int dk = good_mod(k, CHUNK_SIZE);
-    Chunk& chunk = _chunks[toChunk({i, j, k})];
-    return chunk.data.at(di).at(j).at(dk);
+    auto chunk_index = toChunk({i, j, k});
+    if (not hasChunk(chunk_index)) {
+      _chunks.emplace(chunk_index, new Chunk());
+    }
+    return _chunks.at(chunk_index)->data.at(di).at(j).at(dk);
   }
 
   u_char operator()(int i, int j, int k) const {
@@ -168,7 +171,7 @@ struct World {
     int dk = good_mod(k, CHUNK_SIZE);
     auto chunk_index = toChunk({i, j, k});
     assert (hasChunk(chunk_index));
-    return _chunks.at(chunk_index).data.at(di).at(j).at(dk);
+    return _chunks.at(chunk_index)->data.at(di).at(j).at(dk);
   }
 
   void build(std::vector<Instance>& instances);
@@ -219,6 +222,6 @@ struct World {
   }
 
   bool isChunkGenerated(glm::ivec2 chunk_index) const {
-    return _chunks.at(chunk_index).generated;
+    return _chunks.at(chunk_index)->generated;
   }
 };
