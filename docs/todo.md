@@ -30,11 +30,11 @@ extreme hill only sometimes
 rivers
 
 final:
-water transparency
 downsample with intelligent interpolation
 neighboring chunks on break refresh a lot
 make caves not iterate through every previous cave to run
 > DONE
+water transparency
 caves
 trees
 trees mess up friends that have already instanced
