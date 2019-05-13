@@ -50,7 +50,9 @@ std::string str(T o) {
     return i.str();
   } else 
   {
+    // static_assert(false) doesn't compile??
     std::cout << "OH NO GOD PLEASE HELP" << std::endl;
+    exit(1);
   }
 }
 
