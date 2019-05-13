@@ -1,5 +1,9 @@
 default: fast
 
+compile:
+	[ -d build ] || mkdir build
+	(cd build; cmake -DCMAKE_BUILD_TYPE=Release -DGTEST=FALSE ..; make -j8)
+
 release:
 	rm -rf build
 	mkdir build
@@ -9,7 +13,7 @@ release:
 build:
 	rm -rf build
 	mkdir build
-	(cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DGTEST=FALSE ..; make -j8)
+	(cd build; cmake -DCMAKE_BUILD_TYPE=Debug -DGTEST=FALSE ..; scan-build -V make -j8)
 
 run:
 	[ -d build ] || mkdir build
