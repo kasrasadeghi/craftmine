@@ -47,6 +47,7 @@
   {
     "category": "async",
     "todos": [
+      "make state machine for chunks",
       "separate terrain gen into individual passes",
       "terrain gen",
       "instance gen"
