@@ -45,7 +45,7 @@
   <script>
   state = [];
 
-  let rpc = {
+  window.rpc = {
     state: 'nope',
     setState: function(s) { this.state = s; },
   };
@@ -75,6 +75,10 @@
     window.external.invoke(JSON.stringify(data, null, 2));
   }
 
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   function load(event /* ignored */) {
     // like a bad react {tree-diff / update on click}
 
@@ -85,8 +89,10 @@
 
     // get todo.json from c++
     window.external.invoke('load');
-    
-    alert(rpc.state);
+
+    await sleep(1000);
+
+    document.getElementById('debug').innerHTML = window.rpc.state;
 
     // rerender #todos
     // render(state);

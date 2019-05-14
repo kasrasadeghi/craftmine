@@ -22,14 +22,10 @@ void create_webview(Webview& w) {
       std::stringstream buffer;
       std::ifstream in {"todo.json"};
       buffer << in.rdbuf();
-      // const std::string* jseval = new std::string("state = `" + buffer.str() + "`;");
-      const std::string* jseval = new std::string("rpc.state = 'hello';");
-      std::cout << *jseval << std::endl;
-      webview_dispatch(w, [](Webview* w, void* arg) {
-        const std::string* jseval = (std::string*)arg;
-        webview_eval(w, jseval->c_str()); 
-        delete jseval;
-      }, (void*)jseval);
+      // const std::string jseval = new std::string("state = `" + buffer.str() + "`;");
+      const std::string jseval = "rpc.state = 'hello';";
+      std::cout << jseval << std::endl;
+      webview_eval(w, jseval.c_str()); 
     } else {
       std::cout << "saving..." << std::endl;
       std::ofstream out {"todo.json"};
