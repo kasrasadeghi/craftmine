@@ -1,4 +1,7 @@
-default: fast
+default: todo # fast
+
+todo:
+	(cd docs; make)
 
 compile:
 	[ -d build ] || mkdir build

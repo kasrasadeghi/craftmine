@@ -11,9 +11,6 @@
       margin-block-start: 0;
       margin-block-end: 0;
     }
-    .store {
-      /* TODO */
-    }
     .todo {
       list-style: none;
       margin-left: 2%;
@@ -35,6 +32,7 @@
       display: flex;
     }
     .navbuttons {
+      list-style: none;
       margin-block-start: 0;
       margin-block-end: 0;
     }
@@ -44,11 +42,6 @@
   </style>
   <script>
   state = [];
-
-  window.rpc = {
-    state: 'nope',
-    setState: function(s) { this.state = s; },
-  };
 
   let selected_node = null;
 
@@ -75,12 +68,8 @@
     window.external.invoke(JSON.stringify(data, null, 2));
   }
 
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
   function load(event /* ignored */) {
-    // like a bad react {tree-diff / update on click}
+    // like a bad react {no tree-diff / update on click}
 
     // clear #todos
     let node = document.getElementById('todos');
@@ -90,12 +79,7 @@
     // get todo.json from c++
     window.external.invoke('load');
 
-    await sleep(1000);
-
-    document.getElementById('debug').innerHTML = window.rpc.state;
-
-    // rerender #todos
-    // render(state);
+    // rerender in c++ to ensure ordering
   }
 
   function dragstart(ev) {
@@ -147,7 +131,7 @@
   }
 
   window.onload = () => {
-    render(state);
+    load();
   };
   </script>
 </head>
@@ -157,8 +141,8 @@
     <nav class='navbar'>
       <a href='#' class='brand'>Todo</a>
       <ul class='navbuttons' class=''>
-        <li><a href='#' class='store' onclick='store(event);'>store</a></li>
-        <li><a href='#' class='load' onclick='load(event);'>load</a></li>
+        <li><a href='#' class='navbutton' onclick='store(event);'>store</a></li>
+        <li><a href='#' class='navbutton' onclick='load(event);'>load</a></li>
       </ul>
     </nav>
     <div id='todos'></div>
