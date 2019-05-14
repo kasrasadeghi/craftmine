@@ -111,11 +111,17 @@
   }
 
   function load() {
+    // like a bad react {tree-diff / update on click}
+
+    // clear #todos
     let node = document.getElementById('todos');
     let cNode = node.cloneNode(false);
     node.parentNode.replaceChild(cNode, node);
+
+    // get todo.json from c++
     window.external.invoke('load');
 
+    // rerender #todos
     render(state);
   }
 
