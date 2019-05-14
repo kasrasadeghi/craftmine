@@ -44,54 +44,47 @@
   </style>
   <script>
 
-  state = {
-    misc:
-    `negative world chunks
-    chunk load and unload from disk
-    only instance gen for chunks that have neighbors
-    make text renderer draw on near plane
-    fix blocks placed on chunk boundary issues`,
-    features:
-    `investigate shadow volumes
-    make terrain generation seed-based
-    anti aliasing
-    texture interpolation instead of color interpolation
-    inventory
-    day night cycle
-    draw player
-    player shadow
-    rivers`,
-    improvements_and_user_ex:
-    `investigate making glad a static lib
-    make better fog
-    handle resizes
-    runescape less strong
-    extreme hill only sometimes
-    neighboring chunks on break refresh a lot`,
-    optimization:
-    `-> async
-    16^3 chunks instead of 16^2 x 128 chunks?
-    make transparency cache for chunk instance building?
-    make orthographic matrix depend on render distance
-    make shadow texture size depend on render distance
-    mipmap shadows
-    downsample with intelligent interpolation
-    make caves not iterate through every previous cave to run`,
-    async:
-    `instance gen
-    terrain gen
-    separate terrain gen into individual passes`,
-    bugs:
-    `need to put a mutex around {the body of the worker thread} and {the instance building}. chunk's backing store might be resized`,
-  };
-
-  let selected_node = null;
+  //===--- UTIL ----------------------------------------------------------===//
 
   function patch(node, attrs) {
     for (let field in attrs) {
       node.setAttribute(field, attrs[field]);
     }
   };
+
+  function elem(tagname, content = '', attrs, children) {
+    let node = document.createElement(tagname);
+    node.append(content);
+    patch(node, attrs);
+    if (children) {
+      for (let child of children) {
+        node.appendChild(child);
+      }
+    }
+    return node;
+  };
+
+  //===--- BAD REACT -----------------------------------------------------===//
+
+  function render(data) {
+    body = document.getElementById('todos');
+    for (let name in data) {
+      let node = 
+        elem('ul', '', { class: 'category collection', 
+                         ondrop:`drop(event, "${name}")`, 
+                         ondragover:'allowDrop(event)' }, 
+          [elem('h3', name + ':', {}, [])]);
+
+      for (let todo_text of data[name].split('\n').map((l) => l.trim())) {
+        let todo = elem('li', todo_text, {class: 'todo collection-item', draggable: 'true', ondragstart: 'dragstart(event)'}); 
+        node.appendChild(todo);
+      }
+
+      body.appendChild(node);
+    }
+  }
+
+  //===--- WEBVIEW -------------------------------------------------------===//
 
   function store() {
     const todos_node = document.getElementById('todos');
@@ -110,7 +103,7 @@
     window.external.invoke(JSON.stringify(data, null, 2));
   }
 
-  function load() {
+  function load(event /* ignored */) {
     // like a bad react {tree-diff / update on click}
 
     // clear #todos
@@ -124,6 +117,11 @@
     // rerender #todos
     render(state);
   }
+
+
+  //===--- DRAG & DROP ---------------------------------------------------===//
+
+  let selected_node = null;
 
   function dragstart(ev) {
     let node = ev.target;
@@ -141,40 +139,10 @@
     ev.target.after(selected_node);
     patch(selected_node, {style: 'color: black'});
     selected_node = null;
-  };
-
-  function render(data) {
-    let elem = (tagname, content = '', attrs, children) => {
-      let node = document.createElement(tagname);
-      node.append(content);
-      patch(node, attrs);
-      if (children) {
-        for (let child of children) {
-          node.appendChild(child);
-        }
-      }
-      return node;
-    };
-
-    body = document.getElementById('todos');
-    for (let name in data) {
-      let node = 
-        elem('ul', '', { class: 'category collection', 
-                         ondrop:`drop(event, "${name}")`, 
-                         ondragover:'allowDrop(event)' }, 
-          [elem('h3', name + ':', {}, [])]);
-
-      for (let todo_text of data[name].split('\n').map((l) => l.trim())) {
-        let todo = elem('li', todo_text, {class: 'todo collection-item', draggable: 'true', ondragstart: 'dragstart(event)'}); 
-        node.appendChild(todo);
-      }
-
-      body.appendChild(node);
-    }
-  }
+  };  
 
   window.onload = () => {
-    render(state);
+    load();
   };
   </script>
 </head>
