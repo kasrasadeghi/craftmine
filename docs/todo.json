@@ -47,7 +47,6 @@
   {
     "category": "async",
     "todos": [
-      "make state machine for chunks",
       "separate terrain gen into individual passes",
       "terrain gen",
       "instance gen"
@@ -63,7 +62,8 @@
   {
     "category": "done",
     "todos": [
-      "fix blocks placed on chunk boundary issues"
+      "make state machine for chunks #async",
+      "fix blocks placed on chunk boundary issues #improvements_and_user_ex"
     ]
   }
 ]
