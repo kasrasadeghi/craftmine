@@ -18,7 +18,7 @@
 
 #include <future>
 
-constexpr bool SHADOWS = true;
+constexpr bool SHADOWS = false;
 
 int main() {
   srand(time(NULL));
@@ -303,7 +303,7 @@ int main() {
             return false;
           }
 
-          if (not world._chunks.at(curr_index)->generated) {
+          if (world._chunks.at(curr_index)->_state < Chunk::State::Generated) {
             return false;
           }
         }
@@ -312,7 +312,7 @@ int main() {
       };
 
       if (world.hasChunk(chunk_index) 
-          && not world._chunks.at(chunk_index)->built 
+          && world._chunks.at(chunk_index)->_state < Chunk::State::Built 
           && is_surroundings_generated()) {
         world.buildChunk(chunk_index);
         break;

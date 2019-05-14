@@ -47,11 +47,7 @@ void World::build(std::vector<Instance>& instances) {
 
       const Chunk* chunk = _chunks.at(chunk_index);
 
-      if (not chunk->generated) {
-        return false;
-      }
-
-      if (not chunk->built) {
+      if (chunk->_state < Chunk::State::Built) {
         return false;
       }
 
@@ -86,11 +82,7 @@ void World::build_water(std::vector<Instance>& instances) {
 
       const Chunk* chunk = _chunks.at(chunk_index);
 
-      if (not chunk->generated) {
-        return false;
-      }
-
-      if (not chunk->built) {
+      if (chunk->_state < Chunk::State::Built) {
         return false;
       }
 

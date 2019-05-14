@@ -105,6 +105,6 @@ struct World {
   }
 
   bool isChunkGenerated(glm::ivec2 chunk_index) const {
-    return _chunks.at(chunk_index)->generated;
+    return _chunks.at(chunk_index)->_state >= Chunk::State::Generated;
   }
 };

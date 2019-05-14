@@ -23,24 +23,26 @@ struct Instance {
 } __attribute__((packed));
 
 struct Chunk {
-  bool generated = false;
-  bool built = false;
   std::array<std::array<std::array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
+  
+  enum class State {
+    Exists, Generated, Built
+  };
+  State _state = State::Exists;
+
   std::vector<Instance> _instances;
   std::vector<Instance> _water_instances;
 
   /// copy cached instances
   void load(std::vector<Instance>& instances) {
-    assert (generated);
-    assert (built);
+    assert (_state >= State::Built);
     assert (not _instances.empty());
     instances.reserve(instances.size() + _instances.size());
     std::copy(_instances.begin(), _instances.end(), std::back_inserter(instances));
   }
 
   void load_water(std::vector<Instance>& instances) {
-    assert (generated);
-    assert (built);
+    assert (_state >= State::Built);
     instances.reserve(instances.size() + _water_instances.size());
     std::copy(_water_instances.begin(), _water_instances.end(), std::back_inserter(instances));
   }
@@ -49,7 +51,7 @@ struct Chunk {
   void build(glm::ivec2 offset,
     std::function<bool(int,int,int)> worldIsAir,
     std::function<bool(int,int,int)> worldIsWater) {
-    assert (generated);
+    assert (_state >= State::Generated);
     _instances.clear();
     _water_instances.clear();
     auto isAir = [&](int i, int j, int k) -> bool {
@@ -116,6 +118,6 @@ struct Chunk {
     }
 
     assert (not _instances.empty());
-    built = true;
+    _state = State::Built;
   }
 };

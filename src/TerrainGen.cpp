@@ -168,12 +168,12 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     }
   }
 
-  world._chunks.at(chunk_index)->generated = true;
+  world._chunks.at(chunk_index)->_state = Chunk::State::Generated;
 
   // neighboring caves
   for (glm::ivec3 voxel : cave_voxels_to_be_carved) {
     glm::ivec2 voxel_chunk_index = World::toChunk(voxel);
-    if (world.hasChunk(voxel_chunk_index) && world._chunks.at(voxel_chunk_index)->generated) {
+    if (world.hasChunk(voxel_chunk_index) && world._chunks.at(voxel_chunk_index)->_state >= Chunk::State::Generated) {
       auto& block = world(voxel.x, voxel.y, voxel.z);
       if (block != Terrain::WATER) {
         block = Terrain::AIR;
