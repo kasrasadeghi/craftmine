@@ -12,6 +12,7 @@
       margin-block-end: 0;
     }
     .store {
+      /* TODO */
     }
     .todo {
       list-style: none;
@@ -20,12 +21,15 @@
       padding-bottom: 0.5%;
       border-bottom: 1px solid black;
     }
+    .todo:first-of-type {
+      border-top: 1px solid black;
+    }
     .brand {
       color: #444
     }
     .content {
       margin-left: 2%;
-      width: 60%;
+      width: 90%;
     }
     .navbar {
       display: flex;
@@ -38,10 +42,9 @@
       padding-bottom: 90%;
     }
   </style>
-
   <script>
 
-  data = {
+  state = {
     misc:
     `negative world chunks
     chunk load and unload from disk
@@ -82,13 +85,30 @@
     `need to put a mutex around {the body of the worker thread} and {the instance building}. chunk's backing store might be resized`,
   };
 
-  let patch = (node, attrs) => {
+  let selected_node = null;
+
+  function patch(node, attrs) {
     for (let field in attrs) {
       node.setAttribute(field, attrs[field]);
     }
   };
 
-  let selected_node = null;
+  function store() {
+    const todos_node = document.getElementById('todos');
+    // iterate through the todos and make a json
+    let data = [];
+    for (const child of todos_node.children) {
+      const category = child.firstElementChild.innerText;
+
+      let todos = [];
+      for (let todo of [...child.children].slice(1) /* ignore the category title */) {
+        todos.push(todo.innerText);
+      }
+      data.push({category, todos})
+    }
+    
+    window.external.invoke(JSON.stringify(data, null, 2));
+  }
 
   function dragstart(ev) {
     let node = ev.target;
@@ -108,38 +128,38 @@
     selected_node = null;
   };
 
-  window.onload = () => {
-
-  
-
-  let elem = (tagname, content = '', attrs, children) => {
-    let node = document.createElement(tagname);
-    node.append(content);
-    patch(node, attrs);
-    if (children) {
-      for (let child of children) {
-        node.appendChild(child);
+  function render(data) {
+    let elem = (tagname, content = '', attrs, children) => {
+      let node = document.createElement(tagname);
+      node.append(content);
+      patch(node, attrs);
+      if (children) {
+        for (let child of children) {
+          node.appendChild(child);
+        }
       }
+      return node;
+    };
+
+    body = document.getElementById('todos');
+    for (let name in data) {
+      let node = 
+        elem('ul', '', { class: 'category collection', 
+                         ondrop:`drop(event, "${name}")`, 
+                         ondragover:'allowDrop(event)' }, 
+          [elem('h3', name + ':', {}, [])]);
+
+      for (let todo_text of data[name].split('\n').map((l) => l.trim())) {
+        let todo = elem('li', todo_text, {class: 'todo collection-item', draggable: 'true', ondragstart: 'dragstart(event)'}); 
+        node.appendChild(todo);
+      }
+
+      body.appendChild(node);
     }
-    return node;
-  };
-
-  body = document.getElementById('todos');
-  for (let name in data) {
-    let node = 
-      elem('ul', '', {class: 'category collection', ondrop:`drop(event, "${name}")`, ondragover:'allowDrop(event)'}, 
-        [elem('h3', name + ':', {}, 
-          [elem('div', '', {class: 'divider'})])
-        ]);
-
-    for (let todo_text of data[name].split('\n').map((l) => l.trim())) {
-      let todo = elem('li', todo_text, {class: 'todo collection-item', draggable: 'true', ondragstart: 'dragstart(event)'}); 
-      node.appendChild(todo);
-    }
-
-    body.appendChild(node);
   }
 
+  window.onload = () => {
+    render(state);
   };
   </script>
 </head>
@@ -148,7 +168,7 @@
     <nav class='navbar'>
       <a href='#' class='brand'>Todo</a>
       <ul class='navbuttons' class=''>
-        <li><a href='#' class='store'></a>store</a></li>
+        <li><a href='#' class='store' onclick='store(event)'>store</a></li>
       </ul>
     </nav>
     <div id='todos'></div>
