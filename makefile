@@ -1,4 +1,4 @@
-default: todo # fast
+default: fast
 
 todo:
 	(cd docs; make)
