@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <cassert>
 
 typedef struct webview Webview;
 
@@ -14,10 +16,19 @@ void create_webview(Webview& w) {
   w.height = 600;
   w.resizable = true;
   w.external_invoke_cb = [](Webview* w, const char* data) {
-    std::cout << "saving..." << std::endl;
-    std::ofstream out {"todo.json"};
-    out << data;
-    out.close();
+    if (data == std::string("load")) {
+      std::cout << "loading..." << std::endl;
+
+      std::stringstream buffer;
+      std::ifstream in {"todo.json"};
+      buffer << in.rdbuf();
+      const std::string jseval = "state = \"" + buffer.str() + "\"";
+      webview_eval(w, jseval.c_str());
+    } else {
+      std::cout << "saving..." << std::endl;
+      std::ofstream out {"todo.json"};
+      out << data;
+    } 
   };
 
   int r = webview_init(&w);

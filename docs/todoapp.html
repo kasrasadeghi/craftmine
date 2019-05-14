@@ -106,8 +106,17 @@
       }
       data.push({category, todos})
     }
-    
+
     window.external.invoke(JSON.stringify(data, null, 2));
+  }
+
+  function load() {
+    let node = document.getElementById('todos');
+    let cNode = node.cloneNode(false);
+    node.parentNode.replaceChild(cNode, node);
+    window.external.invoke('load');
+
+    render(state);
   }
 
   function dragstart(ev) {
@@ -169,6 +178,7 @@
       <a href='#' class='brand'>Todo</a>
       <ul class='navbuttons' class=''>
         <li><a href='#' class='store' onclick='store(event)'>store</a></li>
+        <li><a href='#' class='load' onclick='load(event)'>load</a></li>
       </ul>
     </nav>
     <div id='todos'></div>
