@@ -23,8 +23,8 @@ constexpr bool SHADOWS = true;
 int main() {
   srand(time(NULL));
 
-  // RenderWindow window {"Hello World", 1920, 1080};
-  RenderWindow window {"Hello World"};
+  // RenderWindow window {"Craftmine", 1920, 1080};
+  RenderWindow window {"Craftmine"};
   window.setMousePos(window.width()/2.f, window.height()/2.f);
 
   glfwWindowHint(GLFW_SAMPLES, 4);
