@@ -303,7 +303,7 @@ int main() {
             return false;
           }
 
-          if (world._chunks.at(curr_index)->_state < Chunk::State::Generated) {
+          if (world.chunk(curr_index)->_state < Chunk::State::Generated) {
             return false;
           }
         }
@@ -312,7 +312,7 @@ int main() {
       };
 
       if (world.hasChunk(chunk_index) 
-          && world._chunks.at(chunk_index)->_state < Chunk::State::Built 
+          && world.chunk(chunk_index)->_state < Chunk::State::Built 
           && is_surroundings_generated()) {
         world.buildChunk(chunk_index);
         break;
@@ -430,7 +430,8 @@ int main() {
       }
     }
 
-    tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", window.width() - 400, window.height()/2, 1, glm::vec4(1));
+    tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", 
+        window.width() - 400, window.height()/2, 1, glm::vec4(1));
     // FIXME: also need to include instances in memory usage heuristics
     
     float msgi = 100;

@@ -169,12 +169,12 @@ void caves(World& world, glm::ivec2 chunk_index) {
     }
   }
 
-  world._chunks.at(chunk_index)->_state = Chunk::State::Generated;
+  world.chunk(chunk_index)->_state = Chunk::State::Generated;
 
   // neighboring caves
   for (glm::ivec3 voxel : cave_voxels_to_be_carved) {
     glm::ivec2 voxel_chunk_index = World::toChunk(voxel);
-    if (world.hasChunk(voxel_chunk_index) && world._chunks.at(voxel_chunk_index)->_state >= Chunk::State::Generated) {
+    if (world.hasChunk(voxel_chunk_index) && world.chunk(voxel_chunk_index)->_state >= Chunk::State::Generated) {
       auto& block = world(voxel.x, voxel.y, voxel.z);
       if (block != Terrain::WATER) {
         block = Terrain::AIR;
@@ -262,7 +262,7 @@ void trees(World& world, glm::ivec2 chunk_index) {
 
 void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   assert (world.hasChunk(chunk_index));
-  assert (world._chunks.at(chunk_index)->_state < Chunk::State::Generated);
+  assert (world.chunk(chunk_index)->_state < Chunk::State::Generated);
 
   ground(world, chunk_index);
 
