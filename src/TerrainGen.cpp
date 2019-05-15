@@ -27,6 +27,16 @@ void TerrainGen::spawn(World& world, Player& player) {
   }
 }
 
+float rand1() {
+  return rand()/(float)RAND_MAX;
+}
+
+glm::vec2 circle_rand() {
+  constexpr float TWO_PI = 6.28318530717958647692528676655900576;
+  float theta = rand1() * TWO_PI;
+  return glm::vec2 {glm::cos(theta), glm::sin(theta)};
+}
+
 void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   assert (world.hasChunk(chunk_index));
   assert (world._chunks.at(chunk_index)->_state < Chunk::State::Generated);
@@ -87,18 +97,6 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
       }
     }
   }
-
-  /// rand wrappers
-
-  auto rand1 = []() -> float {
-    return rand()/(float)RAND_MAX;
-  };
-
-  auto circle_rand = [rand1]() -> glm::vec2 {
-    constexpr float TWO_PI = 6.28318530717958647692528676655900576;
-    float theta = rand1() * TWO_PI;
-    return glm::vec2 {glm::cos(theta), glm::sin(theta)};
-  };
 
   /// Cave generation pass
 
