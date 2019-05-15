@@ -37,10 +37,7 @@ glm::vec2 circle_rand() {
   return glm::vec2 {glm::cos(theta), glm::sin(theta)};
 }
 
-void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
-  assert (world.hasChunk(chunk_index));
-  assert (world._chunks.at(chunk_index)->_state < Chunk::State::Generated);
-
+void ground(World& world, glm::ivec2 chunk_index) {
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
 
@@ -97,7 +94,17 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
       }
     }
   }
+}
 
+void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
+  assert (world.hasChunk(chunk_index));
+  assert (world._chunks.at(chunk_index)->_state < Chunk::State::Generated);
+
+  ground(world, chunk_index);
+  
+  int bi = chunk_index.x * CHUNK_SIZE;
+  int bk = chunk_index.y * CHUNK_SIZE;
+  
   /// Cave generation pass
 
   // randomly pick a point in the chunk
