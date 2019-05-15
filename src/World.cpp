@@ -105,7 +105,7 @@ void World::build_water(std::vector<Instance>& instances) {
 
 void World::buildChunk(glm::ivec2 chunk_index) {
   assert (hasChunk(chunk_index));
-  assert (_chunks.at(chunk_index)->_state >= Chunk::State::Built);
+  assert (_chunks.at(chunk_index)->_state >= Chunk::State::Generated);
   _chunks.at(chunk_index)->build({chunk_index.x*CHUNK_SIZE, chunk_index.y*CHUNK_SIZE}, 
       [&](int i, int j, int k){return isAir(i, j, k);}, 
       [&](int i, int j, int k){return isWater(i, j, k);});
