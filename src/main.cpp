@@ -264,6 +264,7 @@ int main() {
 
   double fps_counter_time = glfwGetTime();
   int framecounter = 0;
+  double moving_framerate = 60.f;
   while (window.isOpen()) {
     glUseProgram(program_id);
 
@@ -299,11 +300,8 @@ int main() {
         for (int k = -1; k <= 1; ++k) {
           glm::ivec2 curr_index = chunk_index + glm::ivec2{i, k};
 
-          if (not world.hasChunk(curr_index)) {
-            return false;
-          }
-
-          if (world.chunk(curr_index)->_state < Chunk::State::Generated) {
+          if (not world.hasChunk(curr_index) 
+            || world.chunk(curr_index)->_state < Chunk::State::Generated) {
             return false;
           }
         }
@@ -408,19 +406,23 @@ int main() {
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, water_instances.size());
     
-    /// Render Text 
+    /// Render Text
     tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
     tr.renderText((player.collided(world) ? "" : "not ") + str("collided"), 100, 230, 1, glm::vec4(1));
     tr.renderText("player pos:   " + str(player.feet()), 200, 50, 1, glm::vec4(1));
     tr.renderText("player block: " + str(player.blockPosition()), 200, 80, 1, glm::vec4(1));
     tr.renderText("chunk pos:    " + str(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
     tr.renderText("chunk exists? " + str(world.hasChunk(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 140, 1, glm::vec4(1));
-    tr.renderText("chunk genned? " + str(world.isChunkGenerated(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 170, 1, glm::vec4(1));
+    tr.renderText("chunk genned? " + str(world.chunk(World::toChunk(player.blockPosition()))->_state > Chunk::State::Generated ? "true" : "false"), 200, 170, 1, glm::vec4(1));
     tr.renderText("player block? " + Terrain::str(player._held_block), 100, window.height() - 100, 1, glm::vec4(1));
     tr.renderText("player mode: " + player.modeString(), window.width() - 500, 100, 1, glm::vec4(1));
     tr.renderText("+", window.width()/2, window.height()/2, 1, glm::vec4(1));
-    tr.renderText(str(1 / (glfwGetTime() - fps_counter_time)) + " FPS", window.width() - 200, 50, 1, glm::vec4(1));
+
+    moving_framerate = (moving_framerate * 127 + 1 / (glfwGetTime() - fps_counter_time)) / 128;
+    tr.renderText(str(1 / (glfwGetTime() - fps_counter_time)) + "  FPS", window.width() - 200, 50, 1, glm::vec4(1));
+    tr.renderText(str(moving_framerate) + " ~FPS", window.width() - 200, 80, 1, glm::vec4(1));
     fps_counter_time = glfwGetTime();
+    
     for (int i = 0; i < 3; ++i) {
       auto p = player.blockPosition();
       auto y = p.y - i;
