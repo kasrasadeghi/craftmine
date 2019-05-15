@@ -58,7 +58,8 @@
       "need to put a mutex around {the body of the worker thread} and {the instance building}. chunk's backing store might be resized",
       "make text renderer draw on near plane",
       "trees still don't render",
-      "ceiling collision"
+      "ceiling collision",
+      "caves that dig into other chunks need those other chunks to regenerate instances"
     ]
   },
   {
