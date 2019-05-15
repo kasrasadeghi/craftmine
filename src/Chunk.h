@@ -25,8 +25,8 @@ struct Instance {
 struct Chunk {
   std::array<std::array<std::array<u_char, CHUNK_SIZE>, CHUNK_HEIGHT>, CHUNK_SIZE> data {}; // zero init in cpp
   
-  enum class State {
-    Exists, Generated, Built
+  enum class State {                                    /* Generated_Trees == Generated */
+    Exists = 0, Generated_Ground = 1, Generated_Caves = 2, Generated_Trees = 3, Generated = 3, Built = 4
   };
   State _state = State::Exists;
 

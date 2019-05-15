@@ -96,11 +96,7 @@ void ground(World& world, glm::ivec2 chunk_index) {
   }
 }
 
-void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
-  assert (world.hasChunk(chunk_index));
-  assert (world._chunks.at(chunk_index)->_state < Chunk::State::Generated);
-
-  ground(world, chunk_index);
+void caves(World& world, glm::ivec2 chunk_index) {
   
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
@@ -186,6 +182,19 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
     }
   }
 
+}
+
+void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
+  assert (world.hasChunk(chunk_index));
+  assert (world._chunks.at(chunk_index)->_state < Chunk::State::Generated);
+
+  ground(world, chunk_index);
+
+  caves(world, chunk_index);
+  
+  int bi = chunk_index.x * CHUNK_SIZE;
+  int bk = chunk_index.y * CHUNK_SIZE;
+  
   /// Tree pass
   struct Tree_ {
     glm::ivec2 pos;
