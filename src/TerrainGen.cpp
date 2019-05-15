@@ -29,7 +29,7 @@ void TerrainGen::spawn(World& world, Player& player) {
 
 void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   assert (world.hasChunk(chunk_index));
-  assert (world._chunks.at(chunk_index)->_state >= Chunk::State::Generated);
+  assert (world._chunks.at(chunk_index)->_state < Chunk::State::Generated);
 
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
