@@ -56,7 +56,9 @@
     "category": "bugs",
     "todos": [
       "need to put a mutex around {the body of the worker thread} and {the instance building}. chunk's backing store might be resized",
-      "make text renderer draw on near plane"
+      "make text renderer draw on near plane",
+      "trees still don't render",
+      "ceiling collision"
     ]
   },
   {
