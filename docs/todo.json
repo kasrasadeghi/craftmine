@@ -1,6 +1,6 @@
 [
   {
-    "category": "misc",
+    "category": "awaiting triage",
     "todos": []
   },
   {
@@ -51,6 +51,16 @@
     ]
   },
   {
+    "category": "profiling",
+    "todos": [
+      "make profiling tags different colors",
+      "improve task hierarchy analysis",
+      "show frametime durations instead of just numbers",
+      "remember worst frame or top 10 bad frames",
+      "make profiler not leak memory by writing to disk"
+    ]
+  },
+  {
     "category": "async",
     "todos": [
       "separate terrain gen into individual passes",
@@ -72,7 +82,8 @@
     "category": "done",
     "todos": [
       "make state machine for chunks #async",
-      "fix blocks placed on chunk boundary issues #improvements_and_user_ex"
+      "fix blocks placed on chunk boundary issues #improvements_and_user_ex",
+      "decent profiling #profiling"
     ]
   }
 ]
