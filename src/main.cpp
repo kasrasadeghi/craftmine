@@ -406,39 +406,68 @@ int main() {
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, water_instances.size());
     
-    /// Render Text
-    tr.renderText(player._grounded ? "grounded" : "not grounded", 100, 200, 1, glm::vec4(1));
-    tr.renderText((player.collided(world) ? "" : "not ") + str("collided"), 100, 230, 1, glm::vec4(1));
-    tr.renderText("player pos:   " + str(player.feet()), 200, 50, 1, glm::vec4(1));
-    tr.renderText("player block: " + str(player.blockPosition()), 200, 80, 1, glm::vec4(1));
-    tr.renderText("chunk pos:    " + str(World::toChunk(player.blockPosition())), 200, 110, 1, glm::vec4(1));
-    tr.renderText("chunk exists? " + str(world.hasChunk(World::toChunk(player.blockPosition())) ? "true" : "false"), 200, 140, 1, glm::vec4(1));
-    tr.renderText("chunk genned? " + str(world.chunk(World::toChunk(player.blockPosition()))->_state > Chunk::State::Generated ? "true" : "false"), 200, 170, 1, glm::vec4(1));
-    tr.renderText("player block? " + Terrain::str(player._held_block), 100, window.height() - 100, 1, glm::vec4(1));
-    tr.renderText("player mode: " + player.modeString(), window.width() - 500, 100, 1, glm::vec4(1));
-    tr.renderText("+", window.width()/2, window.height()/2, 1, glm::vec4(1));
-
-    moving_framerate = (moving_framerate * 127 + 1 / (glfwGetTime() - fps_counter_time)) / 128;
-    tr.renderText(str(1 / (glfwGetTime() - fps_counter_time)) + "  FPS", window.width() - 200, 50, 1, glm::vec4(1));
-    tr.renderText(str(moving_framerate) + " ~FPS", window.width() - 200, 80, 1, glm::vec4(1));
-    fps_counter_time = glfwGetTime();
-    
-    for (int i = 0; i < 3; ++i) {
-      auto p = player.blockPosition();
-      auto y = p.y - i;
-
-      if (y < CHUNK_HEIGHT && y >= 0) {
-        tr.renderText((world(p.x, y, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
+    /* Render Text */ {
+      auto text = [&tr](std::vector<std::string> xs, glm::ivec2 start_pos) {
+        int count = 0;  
+        for (std::string x : xs) {
+          tr.renderText(x, start_pos.x, start_pos.y + count++ * 30, 1);
+        }
+      };
+      
+      auto ppos = player.feet();
+      auto pblock = World::toBlock(ppos);
+      auto pchunk = World::toChunk(pblock);
+      std::string chunk_message = "chunk does not exist";
+      if (world.hasChunk(pchunk)) {
+        chunk_message = ([&]() -> std::string {
+          switch (world.chunk(pchunk)->_state) {
+            case Chunk::State::Exists:          return "chunk exists";
+            case Chunk::State::Generated_Ground: 
+            case Chunk::State::Generated_Caves: return "chunk is being generated";
+            case Chunk::State::Generated:       return "chunk is generated";
+            case Chunk::State::Built:           return "chunk is built";
+          }
+          return "unreachable";
+        })();
       }
-    }
 
-    tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", 
-        window.width() - 400, window.height()/2, 1, glm::vec4(1));
-    // FIXME: also need to include instances in memory usage heuristics
-    
-    float msgi = 100;
-    for (auto&& message : build_messages) {
-      tr.renderText(message, 1600, msgi += 30, 1, glm::vec4(1));
+      std::vector<std::string> messages {
+        "player pos:   " + str(ppos),
+        "player block: " + str(pblock),
+        "chunk pos:    " + str(pchunk),
+        chunk_message,
+        player._grounded ? "grounded" : "not grounded",
+        (player.collided(world) ? "" : "not ") + str("collided"),
+      };
+
+      text(messages, {100, 50});
+      
+      tr.renderText("player block? " + Terrain::str(player._held_block), 100, window.height() - 100, 1);
+      tr.renderText("player mode: " + player.modeString(), window.width() - 500, 100, 1);
+      tr.renderText("+", window.width()/2, window.height()/2, 1);
+
+      moving_framerate = (moving_framerate * 127 + 1 / (glfwGetTime() - fps_counter_time)) / 128;
+      tr.renderText(str(1 / (glfwGetTime() - fps_counter_time)) + "  FPS", window.width() - 200, 50, 1);
+      tr.renderText(str(moving_framerate) + " ~FPS", window.width() - 200, 80, 1);
+      fps_counter_time = glfwGetTime();
+      
+      for (int i = 0; i < 3; ++i) {
+        auto p = player.blockPosition();
+        auto y = p.y - i;
+
+        if (y < CHUNK_HEIGHT && y >= 0) {
+          tr.renderText((world(p.x, y, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
+        }
+      }
+
+      tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", 
+          window.width() - 400, window.height()/2, 1, glm::vec4(1));
+      // FIXME: also need to include instances in memory usage heuristics
+      
+      float msgi = 100;
+      for (auto&& message : build_messages) {
+        tr.renderText(message, 1600, msgi += 30, 1, glm::vec4(1));
+      }
     }
 
     window.swapBuffers();

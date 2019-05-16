@@ -160,7 +160,7 @@ public:
     return ID;
   }
 
-  GLfloat renderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color) {
+  GLfloat renderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color = glm::vec4(1)) {
     glEnable(GL_BLEND);
     // Activate corresponding render state
     glUseProgram(_shaderID);
