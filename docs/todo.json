@@ -17,7 +17,9 @@
       "player shadow",
       "rivers",
       "apply blue tinge when underwater",
-      "draw water's surface below water"
+      "draw water's surface below water",
+      "unlocked framerate support",
+      "unlocked framerate dynamic toggle"
     ]
   },
   {
