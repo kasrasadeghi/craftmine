@@ -45,7 +45,9 @@
       "make shadow texture size depend on render distance",
       "mipmap shadows",
       "downsample with intelligent interpolation",
-      "make caves not iterate through every previous cave to run"
+      "make caves not iterate through every previous cave to run",
+      "modify libnoise perlin to be faster",
+      "profile code"
     ]
   },
   {
