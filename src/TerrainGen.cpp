@@ -213,7 +213,7 @@ void TerrainGen::trees(World& world, glm::ivec2 chunk_index) {
     curr += glm::floor(glm::vec2(tree_size + 3) * circle_rand());
   }
 
-  // secound pass tree planting
+  // second pass tree planting
   auto plant_tree = [&](glm::ivec2 pos, float size) {
     // find the block to plant upon
     float max_height = CHUNK_HEIGHT - 1;
