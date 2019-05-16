@@ -293,7 +293,10 @@ int main() {
       }
 
       if (world.chunk(chunk_index)->_state == Chunk::State::Exists) {
-        TerrainGen::ground(world.chunk(chunk_index), chunk_index);
+        Chunk* chunk = world.chunk(chunk_index);
+        std::async([=]() {
+          TerrainGen::ground(chunk, chunk_index);
+        });
         break;
       }
 
@@ -443,6 +446,16 @@ int main() {
         }
         return "unreachable";
       })();
+
+      // Render blocks around player
+      for (int i = 0; i < 3; ++i) {
+        auto p = player.blockPosition();
+        auto y = p.y - i;
+
+        if (y < CHUNK_HEIGHT && y >= 0) {
+          tr.renderText((world(p.x, y, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
+        }
+      }
     }
 
     std::vector<std::string> messages {
@@ -464,15 +477,6 @@ int main() {
     tr.renderText(str(1 / (glfwGetTime() - fps_counter_time)) + "  FPS", window.width() - 200, 50, 1);
     tr.renderText(str(moving_framerate) + " ~FPS", window.width() - 200, 80, 1);
     fps_counter_time = glfwGetTime();
-    
-    for (int i = 0; i < 3; ++i) {
-      auto p = player.blockPosition();
-      auto y = p.y - i;
-
-      if (y < CHUNK_HEIGHT && y >= 0) {
-        tr.renderText((world(p.x, y, p.z) ? "1" : "0"), 1000, 100 + i*30, 1, glm::vec4(1));
-      }
-    }
 
     tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", 
         window.width() - 400, window.height()/2, 1, glm::vec4(1));
