@@ -37,8 +37,8 @@ glm::vec2 circle_rand() {
   return glm::vec2 {glm::cos(theta), glm::sin(theta)};
 }
 
-void ground(World& world, glm::ivec2 chunk_index) {
-  assert(world.chunk(chunk_index)->_state == Chunk::State::Exists);
+void TerrainGen::ground(Chunk* chunk, glm::ivec2 chunk_index) {
+  assert(chunk->_state == Chunk::State::Exists);
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
 
@@ -81,7 +81,7 @@ void ground(World& world, glm::ivec2 chunk_index) {
     for (int j = 127; j >= 0; --j) {
       if (column[j]) {
         seen = true;
-        world(i, j, k) = stretch_octave(stretch);
+        chunk->data.at(di).at(j).at(dk) = stretch_octave(stretch);
         stretch ++;
       } else {
         if (seen) {
@@ -90,16 +90,16 @@ void ground(World& world, glm::ivec2 chunk_index) {
           stretch = 0;
         }
         if (j < 40) {
-          world(i, j, k) = Terrain::WATER;
+          chunk->data.at(di).at(j).at(dk) = Terrain::WATER;
         }
       }
     }
   }
 
-  world.chunk(chunk_index)->_state = Chunk::State::Generated_Ground;
+  chunk->_state = Chunk::State::Generated_Ground;
 }
 
-void caves(World& world, glm::ivec2 chunk_index) {
+void TerrainGen::caves(World& world, glm::ivec2 chunk_index) {
   assert(world.chunk(chunk_index)->_state == Chunk::State::Generated_Ground);
   
   int bi = chunk_index.x * CHUNK_SIZE;
@@ -173,12 +173,10 @@ void caves(World& world, glm::ivec2 chunk_index) {
     }
   }
 
-  world.chunk(chunk_index)->_state = Chunk::State::Generated;
-
   // neighboring caves
   for (glm::ivec3 voxel : cave_voxels_to_be_carved) {
     glm::ivec2 voxel_chunk_index = World::toChunk(voxel);
-    if (world.hasChunk(voxel_chunk_index) && world.chunk(voxel_chunk_index)->_state >= Chunk::State::Generated) {
+    if (world.hasChunk(voxel_chunk_index) && world.chunk(voxel_chunk_index)->_state >= Chunk::State::Generated_Caves) {
       auto& block = world(voxel.x, voxel.y, voxel.z);
       if (block != Terrain::WATER) {
         block = Terrain::AIR;
@@ -189,7 +187,7 @@ void caves(World& world, glm::ivec2 chunk_index) {
   world.chunk(chunk_index)->_state = Chunk::State::Generated_Caves;
 }
 
-void trees(World& world, glm::ivec2 chunk_index) {
+void TerrainGen::trees(World& world, glm::ivec2 chunk_index) {
   assert(world.chunk(chunk_index)->_state == Chunk::State::Generated_Caves);
   int bi = chunk_index.x * CHUNK_SIZE;
   int bk = chunk_index.y * CHUNK_SIZE;
@@ -272,7 +270,7 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
   assert (world.chunk(chunk_index)->_state < Chunk::State::Generated);
 
   if (world.chunk(chunk_index)->_state == Chunk::State::Exists) {
-    ground(world, chunk_index);
+    ground(world.chunk(chunk_index), chunk_index);
     return;
   }
 
@@ -283,8 +281,9 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
   if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Caves) {
     trees(world, chunk_index);
+    assert(world.chunk(chunk_index)->_state == Chunk::State::Generated_Trees);
     return;
   }
 
-  assert(world.chunk(chunk_index)->_state == Chunk::State::Generated_Trees);
+  assert(false);
 }

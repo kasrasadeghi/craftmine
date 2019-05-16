@@ -291,8 +291,19 @@ int main() {
       if (not world.hasChunk(chunk_index)) {
         world._chunks.emplace(chunk_index, new Chunk());
       }
-      if (not world.isChunkGenerated(chunk_index)) {
-        TerrainGen::chunk(world, chunk_index);
+
+      if (world.chunk(chunk_index)->_state == Chunk::State::Exists) {
+        TerrainGen::ground(world.chunk(chunk_index), chunk_index);
+        break;
+      }
+
+      if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Ground) {
+        TerrainGen::caves(world, chunk_index);
+        break;
+      }
+
+      if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Caves) {
+        TerrainGen::trees(world, chunk_index);
         break;
       }
 
