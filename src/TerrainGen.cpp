@@ -182,6 +182,7 @@ void caves(World& world, glm::ivec2 chunk_index) {
     }
   }
 
+  world.chunk(chunk_index)->_state = Chunk::State::Generated_Caves;
 }
 
 void trees(World& world, glm::ivec2 chunk_index) {
@@ -258,6 +259,7 @@ void trees(World& world, glm::ivec2 chunk_index) {
     plant_tree(tree.pos, tree.size);
   }
 
+  world.chunk(chunk_index)->_state = Chunk::State::Generated_Trees;
 }
 
 void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
