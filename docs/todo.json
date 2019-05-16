@@ -64,8 +64,9 @@
     "category": "async",
     "todos": [
       "separate terrain gen into individual passes",
-      "terrain gen",
-      "instance gen"
+      "tree gen",
+      "cave gen",
+      "instance building"
     ]
   },
   {
@@ -75,7 +76,8 @@
       "make text renderer draw on near plane",
       "trees still don't render",
       "ceiling collision",
-      "caves that dig into other chunks need those other chunks to regenerate instances"
+      "caves that dig into other chunks need those other chunks to regenerate instances",
+      "the same chunk can be added to a worker twice: need to have either a 'in worker' atomic<bool> or a start and end state"
     ]
   },
   {
@@ -83,7 +85,8 @@
     "todos": [
       "make state machine for chunks #async",
       "fix blocks placed on chunk boundary issues #improvements_and_user_ex",
-      "decent profiling #profiling"
+      "decent profiling #profiling",
+      "ground generation #async"
     ]
   }
 ]
