@@ -547,6 +547,7 @@ int main() {
       pr.event("render text");
       pr.endFrame();
 
+      // 2 60th's of a second is a bad frame. only keep bad frames
       if (pr._frames.back().elapsedTime() < 2/60.0) {
         pr.removeLastFrame();
       }
