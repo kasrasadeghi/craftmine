@@ -9,6 +9,7 @@
 #include "World.h"
 #include "Terrain.h"
 #include "Str.h"
+#include "Profiler.h"
 
 #include <iostream>
 #include <vector>
@@ -20,6 +21,7 @@
 #include <deque>
 
 constexpr bool SHADOWS = false;
+constexpr bool PROFILING = true;
 
 int main() {
   srand(time(NULL));
@@ -233,8 +235,6 @@ int main() {
 
   glm::vec4 light_position {0, 1000, 0, 1};
 
-  std::vector<std::string> build_messages;
-
   // Setup framebuffer for depth
   const unsigned int SHADOW_WIDTH = 10000;
   const unsigned int SHADOW_HEIGHT = 10000;
@@ -288,7 +288,11 @@ int main() {
   double framerate = 60.f;
   double delta_time = 0.f;
 
+  Profiler pr;
+
   while (window.isOpen()) {
+
+    if constexpr(PROFILING) { pr.startFrame(); }
 
     /// Update Frame Data ===----------------------------------------------------------------===///
     framecounter ++;
@@ -301,6 +305,7 @@ int main() {
 
     // FIXME: resize window
     // glfwGetFramebufferSize(window, &window_width, &window_height);
+    if constexpr(PROFILING) { pr.event("update frame data"); }
 
     /// Handle Updates ===-------------------------------------------------------------------===///
 
@@ -314,10 +319,6 @@ int main() {
 
     player.handleTick(world);
     world.handleTick(player); // updates world._active set
-
-    build_messages.clear();
-    double start = glfwGetTime();
-    build_messages.emplace_back("building active set of size " + str(world._active_set.size()));
 
     for (const glm::ivec2& chunk_index : world._active_set) {
       if (not world.hasChunk(chunk_index)) {
@@ -364,7 +365,7 @@ int main() {
       }
     }
 
-    build_messages.emplace_back("generate chunk: " + str(glfwGetTime() - start));
+    if constexpr(PROFILING) { pr.event("handle updates"); }
 
     /// Build Instances ===-------------------------------------------------------===///
     glUseProgram(program_id);
@@ -373,6 +374,8 @@ int main() {
     world.build(instances);
     glBindBuffer(GL_ARRAY_BUFFER, VBO.instances_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * instances.size(), instances.data(), GL_STATIC_DRAW);
+
+    if constexpr(PROFILING) { pr.event("copy over instances"); }
 
     /// Render ===----------------------------------------------------------------===///
     float aspect = static_cast<float>(window.width()) / window.height();
@@ -413,6 +416,8 @@ int main() {
       glUniform1i(       uniform.wireframe,  wireframe_mode);
 
       glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, instances.size());
+
+      if constexpr(PROFILING) { pr.event("render shadow"); }
     }
 
     /// Render to Screen ===-----------------------------------------------------===///
@@ -454,6 +459,8 @@ int main() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(Instance) * water_instances.size(), water_instances.data(), GL_STATIC_DRAW);
 
     glDrawElementsInstanced(GL_TRIANGLES, faces.size() * 3, GL_UNSIGNED_INT, NULL, water_instances.size());
+
+    if constexpr(PROFILING) { pr.event("render to screen"); }
     
     /// Render Text ===--------------------------------------------------===///
     auto text = [&tr](std::vector<std::string> xs, glm::ivec2 start_pos) {
@@ -526,10 +533,24 @@ int main() {
         window.width() - 400, window.height()/2, 1, glm::vec4(1));
     // FIXME: also need to include instances in memory usage heuristics
     
-    float msgi = 100;
-    for (auto&& message : build_messages) {
-      tr.renderText(message, 1600, msgi += 30, 1, glm::vec4(1));
+    if constexpr(PROFILING) {
+      pr.event("render text");
+      pr.endFrame();
+
+      if (pr._frames.back().elapsedTime() < 2/60.0) {
+        pr.removeLastFrame();
+      }
+      std::vector<std::string> frame_messages;
+      if (not pr._frames.empty()) {
+        for (const Event& event : pr._frames.back()._events) {
+          frame_messages.emplace_back(event.name + str(": ") + str(event.elapsed_time) + "s");
+        }
+      }
+
+      text(frame_messages, {1600, 100});
     }
+
+    /// Poll Events and Swap ===------------------------------------------------------===///
     
     window.swapBuffers();
     glfwPollEvents();
