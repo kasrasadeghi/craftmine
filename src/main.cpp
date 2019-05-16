@@ -320,26 +320,35 @@ int main() {
     player.handleTick(world);
     world.handleTick(player); // updates world._active set
 
+    if constexpr(PROFILING) { pr.event("  handle movement and update ticks"); }
+
+    bool have_sent_to_worker = false; // only send to worker once a frame
     for (const glm::ivec2& chunk_index : world._active_set) {
       if (not world.hasChunk(chunk_index)) {
         world._chunks.emplace(chunk_index, new Chunk());
+        if constexpr(PROFILING) { pr.event("  allocate a new chunk"); }
       }
 
-      if (world.chunk(chunk_index)->_state == Chunk::State::Exists) {
+      if (world.chunk(chunk_index)->_state == Chunk::State::Exists && not have_sent_to_worker) {
         Chunk* chunk = world.chunk(chunk_index);
         {
           std::lock_guard<std::mutex> g(ground_gen_mutex);
           to_be_ground_genned.emplace_back(chunk, chunk_index);
         }
+        have_sent_to_worker = true;
+        if constexpr(PROFILING) { pr.event("  send chunk to generate_ground_worker"); }
+        break;
       }
 
       if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Ground) {
         TerrainGen::caves(world, chunk_index);
+        if constexpr(PROFILING) { pr.event("  generate caves"); }
         break;
       }
 
       if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Caves) {
         TerrainGen::trees(world, chunk_index);
+        if constexpr(PROFILING) { pr.event("  generate trees"); }
         break;
       }
 
@@ -361,6 +370,7 @@ int main() {
           && world.chunk(chunk_index)->_state < Chunk::State::Built 
           && is_surroundings_generated()) {
         world.buildChunk(chunk_index);
+        if constexpr(PROFILING) { pr.event("  build instances for a chunk"); }
         break;
       }
     }
