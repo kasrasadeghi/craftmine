@@ -15,7 +15,9 @@
       "day night cycle",
       "draw player",
       "player shadow",
-      "rivers"
+      "rivers",
+      "apply blue tinge when underwater",
+      "draw water's surface below water"
     ]
   },
   {
