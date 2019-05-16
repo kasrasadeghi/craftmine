@@ -457,7 +457,19 @@ int main() {
     auto ppos = player.feet();
     auto pblock = World::toBlock(ppos);
     auto pchunk = World::toChunk(pblock);
+
+    std::vector<std::string> messages {
+      "player pos:   " + str(ppos),
+      "player block: " + str(pblock),
+      "chunk pos:    " + str(pchunk),
+      player._grounded ? "grounded" : "not grounded",
+      (player.collided(world) ? "" : "not ") + str("collided"),
+    };
+
+    text(messages, {100, 50});
+
     std::string chunk_message = "chunk does not exist";
+    glm::vec4   chunk_message_color = {1, 0, 0, 1};
     if (world.hasChunk(pchunk)) {
       chunk_message = ([&]() -> std::string {
         switch (world.chunk(pchunk)->_state) {
@@ -468,6 +480,17 @@ int main() {
           case Chunk::State::Built:           return "chunk is built";
         }
         return "unreachable";
+      })();
+
+      chunk_message_color = ([&]() -> glm::ivec4 {
+        switch (world.chunk(pchunk)->_state) {
+          case Chunk::State::Exists:          return {1, 0, 1, 1};
+          case Chunk::State::Generated_Ground: 
+          case Chunk::State::Generated_Caves: return {0, 0, 1, 1};
+          case Chunk::State::Generated:       return {0, 1, 1, 1};
+          case Chunk::State::Built:           return {0, 1, 0, 1};
+        }
+        return {1, 1, 1, 1};
       })();
 
       // Render blocks around player
@@ -481,17 +504,8 @@ int main() {
       }
     }
 
-    std::vector<std::string> messages {
-      "player pos:   " + str(ppos),
-      "player block: " + str(pblock),
-      "chunk pos:    " + str(pchunk),
-      chunk_message,
-      player._grounded ? "grounded" : "not grounded",
-      (player.collided(world) ? "" : "not ") + str("collided"),
-    };
+    tr.renderText(chunk_message, 100, 200, 1, chunk_message_color);
 
-    text(messages, {100, 50});
-    
     tr.renderText("player block? " + Terrain::str(player._held_block), 100, window.height() - 100, 1);
     tr.renderText("player mode: " + player.modeString(), window.width() - 500, 100, 1);
     tr.renderText("+", window.width()/2, window.height()/2, 1);
