@@ -29,7 +29,7 @@ int main() {
   window.setMousePos(window.width()/2.f, window.height()/2.f);
 
   glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwSwapInterval(0);
+  glfwSwapInterval(1); // framerate set: 0 for uncapped, 1 for monitor refresh rate
 
   Player player;
   player.setPos(glm::vec3(2000, 100, 2000));
@@ -267,11 +267,9 @@ int main() {
   std::mutex ground_gen_mutex;
   std::deque<std::pair<Chunk*, glm::ivec2>> to_be_ground_genned;
 
-  bool ground_gen_running = true;
-  bool ground_gen_not_running_anymore = true;
+  std::atomic<bool> ground_gen_running = true;
 
-  std::thread([&]() {
-    ground_gen_not_running_anymore = false;
+  auto ground_gen_worker = std::thread([&]() {
     while (ground_gen_running) {
       std::lock_guard<std::mutex> g(ground_gen_mutex);
       if (to_be_ground_genned.empty()) {
@@ -282,8 +280,7 @@ int main() {
         to_be_ground_genned.pop_front();
       }
     }
-    ground_gen_not_running_anymore = true;
-  }).detach();
+  });
 
   double fps_counter_time = glfwGetTime();
   int framecounter = 0;
@@ -537,4 +534,8 @@ int main() {
     window.swapBuffers();
     glfwPollEvents();
   }
+
+  ground_gen_running = false;
+
+  ground_gen_worker.join();
 }
