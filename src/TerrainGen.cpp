@@ -271,19 +271,16 @@ void TerrainGen::chunk(World& world, glm::ivec2 chunk_index) {
 
   if (world.chunk(chunk_index)->_state == Chunk::State::Exists) {
     ground(world.chunk(chunk_index), chunk_index);
-    return;
   }
 
   if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Ground) {
     caves(world, chunk_index);
-    return;
   }
 
   if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Caves) {
     trees(world, chunk_index);
     assert(world.chunk(chunk_index)->_state == Chunk::State::Generated_Trees);
-    return;
   }
 
-  assert(false);
+  return;
 }

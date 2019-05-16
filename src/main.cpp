@@ -17,6 +17,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include <future>
+#include <deque>
 
 constexpr bool SHADOWS = false;
 
@@ -262,6 +263,22 @@ int main() {
   // once we're ok to start rendering, disable the mouse
   window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+  std::mutex ground_gen_mutex;
+  std::deque<std::pair<Chunk*, glm::ivec2>> to_be_ground_genned;
+
+  std::thread([&]() {
+    while (true) {
+      std::lock_guard<std::mutex> g(ground_gen_mutex);
+      if (to_be_ground_genned.empty()) {
+        continue;
+      } else {
+        auto [chunk, chunk_index] = to_be_ground_genned.front();
+        TerrainGen::ground(chunk, chunk_index);
+        to_be_ground_genned.pop_front();
+      }
+    }
+  }).detach();
+
   double fps_counter_time = glfwGetTime();
   int framecounter = 0;
   double moving_framerate = 60.f;
@@ -294,9 +311,10 @@ int main() {
 
       if (world.chunk(chunk_index)->_state == Chunk::State::Exists) {
         Chunk* chunk = world.chunk(chunk_index);
-        std::async([=]() {
-          TerrainGen::ground(chunk, chunk_index);
-        });
+        {
+          std::lock_guard<std::mutex> g(ground_gen_mutex);
+          to_be_ground_genned.emplace_back(chunk, chunk_index);
+        }
         break;
       }
 
