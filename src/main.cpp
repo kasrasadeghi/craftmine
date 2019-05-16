@@ -29,6 +29,7 @@ int main() {
   window.setMousePos(window.width()/2.f, window.height()/2.f);
 
   glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwSwapInterval(0);
 
   Player player;
   player.setPos(glm::vec3(2000, 100, 2000));
@@ -287,20 +288,32 @@ int main() {
   double fps_counter_time = glfwGetTime();
   int framecounter = 0;
   double moving_framerate = 60.f;
+  double framerate = 60.f;
+  double delta_time = 0.f;
+
   while (window.isOpen()) {
+
+    /// Update Frame Data ===----------------------------------------------------------------===///
     framecounter ++;
 
+    constexpr int geometric_falloff_rate = 16; // try for power of 2
+    delta_time = (glfwGetTime() - fps_counter_time);
+    fps_counter_time = glfwGetTime();
+    framerate = 1 / delta_time;
+    moving_framerate = ((moving_framerate * (geometric_falloff_rate - 1)) + framerate) / geometric_falloff_rate;
 
     // FIXME: resize window
     // glfwGetFramebufferSize(window, &window_width, &window_height);
 
-    /// Handle Updates ===----------------------------------------------------------------===///
-    if (window.getKey(GLFW_KEY_W)) { player.move(2, world);; }
-    if (window.getKey(GLFW_KEY_S)) { player.move(3, world); }
-    if (window.getKey(GLFW_KEY_A)) { player.move(0, world); }
-    if (window.getKey(GLFW_KEY_D)) { player.move(1, world); }
-    if (window.getKey(GLFW_KEY_UP)   || window.getKey(GLFW_KEY_SPACE)) { player.jump(); }
-    if (window.getKey(GLFW_KEY_DOWN) || window.getKey(GLFW_KEY_LEFT_SHIFT)) { player.moveDown(); }
+    /// Handle Updates ===-------------------------------------------------------------------===///
+
+    double movement_delta_time = glm::min(delta_time, 1.0 / 60);
+    if (window.getKey(GLFW_KEY_W)) { player.move(2, delta_time * 60, world);; }
+    if (window.getKey(GLFW_KEY_S)) { player.move(3, delta_time * 60, world); }
+    if (window.getKey(GLFW_KEY_A)) { player.move(0, delta_time * 60, world); }
+    if (window.getKey(GLFW_KEY_D)) { player.move(1, delta_time * 60, world); }
+    if (window.getKey(GLFW_KEY_UP)   || window.getKey(GLFW_KEY_SPACE)) { player.jump(delta_time * 60); }
+    if (window.getKey(GLFW_KEY_DOWN) || window.getKey(GLFW_KEY_LEFT_SHIFT)) { player.moveDown(delta_time * 60); }
 
     player.handleTick(world);
     world.handleTick(player); // updates world._active set
@@ -320,7 +333,6 @@ int main() {
           std::lock_guard<std::mutex> g(ground_gen_mutex);
           to_be_ground_genned.emplace_back(chunk, chunk_index);
         }
-        break;
       }
 
       if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Ground) {
@@ -510,10 +522,8 @@ int main() {
     tr.renderText("player mode: " + player.modeString(), window.width() - 500, 100, 1);
     tr.renderText("+", window.width()/2, window.height()/2, 1);
 
-    moving_framerate = (moving_framerate * 127 + 1 / (glfwGetTime() - fps_counter_time)) / 128;
-    tr.renderText(str(1 / (glfwGetTime() - fps_counter_time)) + "  FPS", window.width() - 200, 50, 1);
+    tr.renderText(str(framerate) + "  FPS", window.width() - 200, 50, 1);
     tr.renderText(str(moving_framerate) + " ~FPS", window.width() - 200, 80, 1);
-    fps_counter_time = glfwGetTime();
 
     tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", 
         window.width() - 400, window.height()/2, 1, glm::vec4(1));
