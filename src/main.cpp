@@ -31,7 +31,7 @@ int main() {
   window.setMousePos(window.width()/2.f, window.height()/2.f);
 
   glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwSwapInterval(1); // framerate set: 0 for uncapped, 1 for monitor refresh rate
+  glfwSwapInterval(0); // framerate set: 0 for uncapped, 1 for monitor refresh rate
 
   Player player;
   player.setPos(glm::vec3(2000, 100, 2000));
@@ -536,8 +536,9 @@ int main() {
     tr.renderText("player mode: " + player.modeString(), window.width() - 500, 100, 1);
     tr.renderText("+", window.width()/2, window.height()/2, 1);
 
-    tr.renderText(str(framerate) + "  FPS", window.width() - 200, 50, 1);
-    tr.renderText(str(moving_framerate) + " ~FPS", window.width() - 200, 80, 1);
+    auto tilde_width = tr.textWidth("~");
+    tr.renderText("FPS: " + str(framerate), window.width() - 300 + tilde_width, 50, 1);
+    tr.renderText("~FPS: " + str(moving_framerate), window.width() - 300, 80, 1);
 
     tr.renderText(str(world._chunks.size() * CHUNK_HEIGHT * CHUNK_SIZE * CHUNK_SIZE / 1024.f / 1024.f) + " MB", 
         window.width() - 400, window.height()/2, 1, glm::vec4(1));
@@ -558,7 +559,7 @@ int main() {
         }
       }
 
-      text(frame_messages, {1600, 100});
+      text(frame_messages, {400, 200});
     }
 
     /// Poll Events and Swap ===------------------------------------------------------===///
