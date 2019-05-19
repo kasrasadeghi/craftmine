@@ -124,3 +124,9 @@ TEST(TerrainGen, spawn_time) {
   player.setPos(glm::vec3(2000, 100, 2000));
   TerrainGen::spawn(world, player);
 }
+
+TEST(TerrainGen, carve_set_deterministic) {
+  auto set = TerrainGen::carve_set({50, 50});
+  auto set2 = TerrainGen::carve_set({50, 50});
+  ASSERT_EQ(set, set2);
+}

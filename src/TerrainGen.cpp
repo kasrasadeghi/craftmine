@@ -89,6 +89,62 @@ void TerrainGen::ground(Chunk* chunk, glm::ivec2 chunk_index) {
   chunk->_state = Chunk::State::Generated_Ground;
 }
 
+std::unordered_set<glm::ivec3> TerrainGen::carve_set(glm::ivec2 chunk_index) {
+  int bi = chunk_index.x * CHUNK_SIZE;
+  int bk = chunk_index.y * CHUNK_SIZE;
+  
+  // randomly pick a point in the chunk
+  auto point = glm::vec3(bi + perlin(bi/15.f, bk/15.f) * 15, perlin(bk/15.f, bi/15.f) * 128, bk + perlin(bi/15.f, bk/15.f, (bi ^ bk)/15.f) * 15);
+
+  // map some perlin segments
+  constexpr int point_count = 20;
+  std::array<glm::vec3, point_count> cave_points {};
+  cave_points[0] = point;
+  for (int i = 1; i < point_count; ++i) {
+    auto prev = cave_points[i - 1];
+
+    float theta = glm::two_pi<float>() * perlin(prev.x / 15.f, prev.y / 15.f, prev.z / 15.f);
+    float phi   = glm::pi<float>() * perlin(prev.x / 15.f, prev.y / 15.f, prev.z / 15.f);
+
+    auto toSpherical = [](float radius, float theta, float phi) -> glm::vec3 {
+      return glm::vec3(
+        radius * glm::cos(theta) * glm::sin(phi),
+        radius * glm::sin(theta) * glm::sin(phi),
+        radius * glm::cos(phi)
+      );
+    };
+
+    cave_points[i] = prev + toSpherical(3, theta, phi);
+  }
+
+  std::unordered_set<glm::ivec3> carve_voxel_set;
+  auto carve_ball = [](glm::vec3 curr_pos, std::unordered_set<glm::ivec3>& carve_set) {
+    
+    constexpr int sphere_radius = 5;
+    for (int ri = -sphere_radius; ri < sphere_radius; ++ri)
+    for (int rj = -sphere_radius; rj < sphere_radius; ++rj)
+    for (int rk = -sphere_radius; rk < sphere_radius; ++rk)
+    {
+      glm::ivec3 current_voxel = glm::ivec3(curr_pos) + glm::ivec3(ri, rj, rk);
+      if (glm::distance(glm::vec3(current_voxel), curr_pos) < sphere_radius) {
+        carve_set.emplace(current_voxel);
+      }
+    }
+  };
+
+  // carve out cave
+  for (int i = 0; i < point_count - 1; ++i) {
+
+    // interpolate between point 0 and point 1
+    for (float d = 0; d < 1; d += 0.3) {
+      glm::vec3 curr_pos = glm::mix(cave_points[i], cave_points[i + 1], d);
+      carve_ball(curr_pos, carve_voxel_set);
+    }
+  }
+
+  return carve_voxel_set;
+}
+
 void TerrainGen::caves(World& world, glm::ivec2 chunk_index) {
   assert(world.chunk(chunk_index)->_state == Chunk::State::Generated_Ground);
   
@@ -97,59 +153,16 @@ void TerrainGen::caves(World& world, glm::ivec2 chunk_index) {
   
   /// Cave generation pass
 
-  // randomly pick a point in the chunk
+  // don't carve as many caves
   if (perlin(bi/15.f, bk/15.f) < 0.2) {
 
-    auto point = glm::vec3(bi + perlin(bi/15.f, bk/15.f) * 15, perlin(bk/15.f, bi/15.f) * 128, bk + perlin(bi/15.f, bk/15.f, (bi ^ bk)/15.f) * 15);
-
-    // map some perlin segments
-    constexpr int point_count = 20;
-    std::array<glm::vec3, point_count> cave_points {};
-    cave_points[0] = point;
-    for (int i = 1; i < point_count; ++i) {
-      auto prev = cave_points[i - 1];
-
-      float theta = glm::two_pi<float>() * perlin(prev.x / 15.f, prev.y / 15.f, prev.z / 15.f);
-      float phi   = glm::pi<float>() * perlin(prev.x / 15.f, prev.y / 15.f, prev.z / 15.f);
-
-      auto toSpherical = [](float radius, float theta, float phi) -> glm::vec3 {
-        return glm::vec3(
-          radius * glm::cos(theta) * glm::sin(phi),
-          radius * glm::sin(theta) * glm::sin(phi),
-          radius * glm::cos(phi)
-        );
-      };
-
-      cave_points[i] = prev + toSpherical(3, theta, phi);
-    }
-
-    std::unordered_set<glm::ivec3> carve_voxel_set;
-    auto carve_ball = [](glm::vec3 curr_pos, std::unordered_set<glm::ivec3>& carve_set) {
-      
-      constexpr int sphere_radius = 5;
-      for (int ri = -sphere_radius; ri < sphere_radius; ++ri)
-      for (int rj = -sphere_radius; rj < sphere_radius; ++rj)
-      for (int rk = -sphere_radius; rk < sphere_radius; ++rk)
-      {
-        glm::ivec3 current_voxel = glm::ivec3(curr_pos) + glm::ivec3(ri, rj, rk);
-        if (glm::distance(glm::vec3(current_voxel), curr_pos) < sphere_radius) {
-          carve_set.emplace(current_voxel);
-        }
-      }
-    };
-
-    // carve out cave
-    for (int i = 0; i < point_count - 1; ++i) {
-
-      // interpolate between point 0 and point 1
-      for (float d = 0; d < 1; d += 0.3) {
-        glm::vec3 curr_pos = glm::mix(cave_points[i], cave_points[i + 1], d);
-        carve_ball(curr_pos, carve_voxel_set);
-      }
-    }
+    std::unordered_set<glm::ivec3> carve_voxel_set = carve_set(chunk_index);
 
     for (glm::ivec3 voxel : carve_voxel_set) {
+      // in the world
       if (voxel.y >= 0 && voxel.y < CHUNK_HEIGHT) {
+
+        // in this chunk
         if (voxel.x >= bi && voxel.z >= bk
             && voxel.x < bi + CHUNK_SIZE && voxel.z < bk + CHUNK_SIZE) {
           auto& block = world(voxel.x, voxel.y, voxel.z);
