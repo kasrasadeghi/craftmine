@@ -329,6 +329,28 @@ int main() {
         if constexpr(PROFILING) { pr.event("  allocate a new chunk"); }
       }
 
+      auto is_surroundings_generated = [&]() {
+        for (int i = -1; i <= 1; ++i)
+        for (int k = -1; k <= 1; ++k) {
+          glm::ivec2 curr_index = chunk_index + glm::ivec2{i, k};
+
+          if (not world.hasChunk(curr_index) 
+            || world.chunk(curr_index)->_state < Chunk::State::Generated) {
+            return false;
+          }
+        }
+
+        return true;
+      };
+
+      if (world.hasChunk(chunk_index) 
+          && world.chunk(chunk_index)->_state < Chunk::State::Built 
+          && is_surroundings_generated()) {
+        world.buildChunk(chunk_index);
+        if constexpr(PROFILING) { pr.event("  build instances for a chunk"); }
+        break;
+      }
+
       if (world.chunk(chunk_index)->_state == Chunk::State::Exists && not have_sent_to_worker) {
         Chunk* chunk = world.chunk(chunk_index);
         {
@@ -349,28 +371,6 @@ int main() {
       if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Caves) {
         TerrainGen::trees(world, chunk_index);
         if constexpr(PROFILING) { pr.event("  generate trees"); }
-        break;
-      }
-
-      auto is_surroundings_generated = [&]() {
-        for (int i = -1; i <= 1; ++i)
-        for (int k = -1; k <= 1; ++k) {
-          glm::ivec2 curr_index = chunk_index + glm::ivec2{i, k};
-
-          if (not world.hasChunk(curr_index) 
-            || world.chunk(curr_index)->_state < Chunk::State::Generated) {
-            return false;
-          }
-        }
-
-        return true;
-      };
-
-      if (world.hasChunk(chunk_index) 
-          && world.chunk(chunk_index)->_state < Chunk::State::Built 
-          && is_surroundings_generated()) {
-        world.buildChunk(chunk_index);
-        if constexpr(PROFILING) { pr.event("  build instances for a chunk"); }
         break;
       }
     }
