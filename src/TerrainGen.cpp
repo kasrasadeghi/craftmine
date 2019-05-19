@@ -4,7 +4,6 @@
 #include "Perlin.h"
 #include "Terrain.h"
 
-#include <glm/gtx/hash.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/constants.hpp>
 

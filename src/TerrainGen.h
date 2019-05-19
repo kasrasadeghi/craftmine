@@ -2,7 +2,9 @@
 
 #include <unordered_set>
 
+#define GLM_EXT_INCLUDED
 #include <glm/gtx/hash.hpp>
+
 #include <glm/vec2.hpp>
 
 struct Player;
