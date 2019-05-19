@@ -49,8 +49,34 @@ void checkShaderCompileErrors(GLuint shader, std::string type) {
   }
 }
 
-extern const char* text_vertex_shader;
-extern const char* text_fragment_shader;
+inline const char* text_fragment_shader = R"zzz(
+#version 330 core
+in vec2 TexCoords;
+out vec4 color;
+
+uniform sampler2D text;
+uniform vec4 textColor;
+
+void main()
+{    
+  vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TexCoords).r);
+  color = textColor * sampled;
+}  
+)zzz";
+
+inline const char* text_vertex_shader = R"zzz(
+#version 330 core
+layout (location = 0) in vec4 vertex; // <vec2 pos, vec2 tex>
+out vec2 TexCoords;
+
+uniform mat4 projection;
+
+void main()
+{
+  gl_Position = projection * vec4(vertex.xy, 0.0, 1.0);
+  TexCoords = vertex.zw;
+}
+)zzz";
 
 class TextRenderer {
   std::map<GLchar, Character> _characters;
@@ -161,8 +187,8 @@ public:
   }
 
   GLfloat renderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec4 color = glm::vec4(1)) {
-    glEnable(GL_BLEND);
     // Activate corresponding render state
+    glEnable(GL_BLEND);
     glUseProgram(_shaderID);
     glUniform4f(_shader_color_loc, color.x, color.y, color.z, color.w);
     glActiveTexture(GL_TEXTURE0);
@@ -209,5 +235,20 @@ public:
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindVertexArray(0);
     return x;
+  }
+
+  GLfloat textWidth(std::string text, GLfloat scale = 1) {
+    // Iterate through all characters
+    std::string::const_iterator c;
+    GLfloat width = 0;
+
+    for (c = text.begin(); c != text.end(); c++) {
+      Character ch = _characters[*c];
+
+      width += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide
+                                          // amount of 1/64th pixels by 64 to get amount of pixels))
+    }
+
+    return width;
   }
 };
