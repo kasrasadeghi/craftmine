@@ -27,16 +27,6 @@ void TerrainGen::spawn(World& world, Player& player) {
   }
 }
 
-float rand1() {
-  return rand()/(float)RAND_MAX;
-}
-
-glm::vec2 circle_rand() {
-  constexpr float TWO_PI = 6.28318530717958647692528676655900576;
-  float theta = rand1() * TWO_PI;
-  return glm::vec2 {glm::cos(theta), glm::sin(theta)};
-}
-
 void TerrainGen::ground(Chunk* chunk, glm::ivec2 chunk_index) {
   assert(chunk->_state == Chunk::State::Exists);
   int bi = chunk_index.x * CHUNK_SIZE;
@@ -185,6 +175,16 @@ void TerrainGen::caves(World& world, glm::ivec2 chunk_index) {
   }
 
   world.chunk(chunk_index)->_state = Chunk::State::Generated_Caves;
+}
+
+float rand1() {
+  return rand()/(float)RAND_MAX;
+}
+
+glm::vec2 circle_rand() {
+  constexpr float TWO_PI = 6.28318530717958647692528676655900576;
+  float theta = rand1() * TWO_PI;
+  return glm::vec2 {glm::cos(theta), glm::sin(theta)};
 }
 
 void TerrainGen::trees(World& world, glm::ivec2 chunk_index) {
