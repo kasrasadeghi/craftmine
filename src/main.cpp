@@ -261,26 +261,26 @@ int main() {
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);  
 
-  // once we're ok to start rendering, disable the mouse
-  window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  /// Workers ===----------------------------------------------------------------------------===///
 
-  std::mutex ground_gen_mutex;
-  std::deque<std::pair<Chunk*, glm::ivec2>> to_be_ground_genned;
+  std::atomic<bool> workers_running = true;
 
-  std::atomic<bool> ground_gen_running = true;
+  std::atomic<std::pair<Chunk*, glm::ivec2>*> ground_gen_req { nullptr };
 
   auto ground_gen_worker = std::thread([&]() {
-    while (ground_gen_running) {
-      std::lock_guard<std::mutex> g(ground_gen_mutex);
-      if (to_be_ground_genned.empty()) {
-        continue;
-      } else {
-        auto [chunk, chunk_index] = to_be_ground_genned.front();
+    while (workers_running) {
+      if (ground_gen_req) {
+        auto [chunk, chunk_index] = *ground_gen_req;
         TerrainGen::ground(chunk, chunk_index);
-        to_be_ground_genned.pop_front();
       }
+      ground_gen_req = nullptr;
     }
   });
+
+  /// Render Loop ===------------------------------------------------------------------------===///
+
+  // once we're ok to start rendering, disable the mouse
+  window.setInputMode(GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   double fps_counter_time = glfwGetTime();
   int framecounter = 0;
@@ -353,13 +353,14 @@ int main() {
 
       if (world.chunk(chunk_index)->_state == Chunk::State::Exists && not have_sent_to_worker) {
         Chunk* chunk = world.chunk(chunk_index);
-        {
-          std::lock_guard<std::mutex> g(ground_gen_mutex);
-          to_be_ground_genned.emplace_back(chunk, chunk_index);
+        if (not ground_gen_req) {
+          ground_gen_req = new std::pair<Chunk*, glm::ivec2>(chunk, chunk_index);
+          have_sent_to_worker = true;
+          break;
+          if constexpr(PROFILING) { pr.event("  send chunk to generate_ground_worker"); }
+        } else {
+          if constexpr(PROFILING) { pr.event("  generate_ground_worker was busy"); }
         }
-        have_sent_to_worker = true;
-        if constexpr(PROFILING) { pr.event("  send chunk to generate_ground_worker"); }
-        break;
       }
 
       if (world.chunk(chunk_index)->_state == Chunk::State::Generated_Ground) {
@@ -568,7 +569,7 @@ int main() {
     glfwPollEvents();
   }
 
-  ground_gen_running = false;
+  workers_running = false;
 
   ground_gen_worker.join();
 }
