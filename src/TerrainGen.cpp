@@ -12,7 +12,7 @@
 
 // FIXME: is every chunk actually only loaded once?
 
-std::unordered_set<glm::ivec3> cave_voxels_to_be_carved;
+static std::unordered_set<glm::ivec3> cave_voxels_to_be_carved;
 
 void TerrainGen::spawn(World& world, Player& player) {
   auto chunk_index = World::toChunk(player.blockPosition());
