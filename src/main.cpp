@@ -270,8 +270,9 @@ int main() {
   auto ground_gen_worker = std::thread([&]() {
     while (workers_running) {
       if (ground_gen_req) {
-        auto [chunk, chunk_index] = *ground_gen_req;
+        auto& [chunk, chunk_index] = *ground_gen_req;
         TerrainGen::ground(chunk, chunk_index);
+        delete ground_gen_req;
       }
       ground_gen_req = nullptr;
     }
