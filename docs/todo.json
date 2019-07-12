@@ -4,6 +4,14 @@
     "todos": []
   },
   {
+    "category": "visual",
+    "todos": [
+      "improved meshing",
+      "consider ",
+      "ambient occlusion"
+    ]
+  },
+  {
     "category": "features",
     "todos": [
       "investigate shadow volumes",
@@ -75,6 +83,7 @@
   {
     "category": "bugs",
     "todos": [
+      "chunks flash in and out of existence when constructing new instances is sequential in render loop",
       "need to put a mutex around {the body of the worker thread} and {the instance building}. chunk's backing store might be resized",
       "make text renderer draw on near plane",
       "trees still don't render",
