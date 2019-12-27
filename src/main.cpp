@@ -343,6 +343,18 @@ int main() {
         return true;
       };
 
+      auto get_neighbourhood = [&]() {
+        std::array<Chunk*, 9> neighbourhood;
+        size_t count = 0;
+        for (int i = -1; i <= 1; ++i)
+        for (int k = -1; k <= 1; ++k) {
+          glm::ivec2 curr_index = chunk_index + glm::ivec2{i, k};
+
+          neighbourhood[count] = world.chunk(curr_index);
+        }
+        return neighbourhood;
+      };
+
       if (world.hasChunk(chunk_index) 
           && world.chunk(chunk_index)->_state < Chunk::State::Built 
           && is_surroundings_generated()) {
